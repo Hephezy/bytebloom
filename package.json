@@ -1,0 +1,42 @@
+{
+  "name": "bytebloom-v1",
+  "version": "1.0.0",
+  "description": "Full-stack blog application with Next.js, Express, GraphQL, and TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm run dev",
+    "server:install": "cd server && npm install",
+    "client:install": "cd client && npm install",
+    "install": "npm run server:install && npm run client:install",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build": "npm run build:client && npm run build:server",
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm start",
+    "docker:up": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
+    "prisma:migrate": "npm --prefix server run prisma:migrate",
+    "test": "echo \"No tests configured yet\" && exit 1"
+  },
+  "keywords": [
+    "blog",
+    "graphql",
+    "nextjs",
+    "express",
+    "typescript",
+    "full-stack",
+    "monorepo"
+  ],
+  "author": "ByteBloom",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

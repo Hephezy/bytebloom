@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  # 1. PostgreSQL Database Service
+  db:
+    image: postgres:15
+    container_name: blog_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword # Change this in production
+      POSTGRES_DB: blogdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - blog_network
+
+  # 2. Backend API Service
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: blog_api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db # Depends on the PostgreSQL database
+    environment:
+      # This URL uses the service name 'db' to connect inside the Docker network
+      DATABASE_URL: "postgresql://postgres:mysecretpassword@db:5432/blogdb?schema=public"
+      JWT_SECRET: "your-super-secret-key-change-me"
+      # The client URL for CORS, using the client's service name
+      CLIENT_URL: "http://client:3000"
+    networks:
+      - blog_network
+
+  # 3. Frontend Next.js App
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: blog_client
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    environment:
+      # This URL is used during the build process to connect to the server
+      NEXT_PUBLIC_GRAPHQL_URL: "http://server:4000/graphql"
+      # NextAuth requires these for the container environment
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "a-different-super-secret-for-nextauth"
+    networks:
+      - blog_network
+
+# Define the persistent volume
+volumes:
+  postgres_data:
+
+# Define the custom network
+networks:
+  blog_network:
+    driver: bridge
