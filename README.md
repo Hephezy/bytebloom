@@ -119,7 +119,7 @@ mutation {
 ### 1️⃣ Clone Repo
 
 ```bash
-git clone https://github.com/your-username/fullstack-blog-monorepo.git
+git clone https://github.com/Hephezy/bytebloom.git
 cd fullstack-blog-monorepo
 ```
 
