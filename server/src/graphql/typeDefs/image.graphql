@@ -1,0 +1,16 @@
+type Image {
+  id: ID!
+  url: String!
+  alt: String
+  caption: String
+  postId: Int!
+  order: Int!
+  createdAt: String!
+}
+
+input ImageInput {
+  url: String!
+  alt: String
+  caption: String
+  order: Int
+}

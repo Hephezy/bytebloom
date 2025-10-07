@@ -17,11 +17,36 @@ model User {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String?
+  published   Boolean  @default(false)
+  coverImage  String?  // URL to cover image
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  images      Image[]  // Multiple images for content
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  posts       Post[]
+  createdAt   DateTime @default(now())
+}
+
+model Image {
+  id          Int      @id @default(autoincrement())
+  url         String
+  alt         String?
+  caption     String?
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId      Int
+  order       Int      @default(0) // For ordering images in the post
+  createdAt   DateTime @default(now())
 }
