@@ -1,7 +1,21 @@
-import React from 'react'
+"use client";
+
+import React from 'react';
 import ThemeToggle from '../ui/ThemeToggle';
+import Link from 'next/link';
+import { useSession, signOut } from "next-auth/react";
+import { User } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
+
   return (
     <nav className='flex w-full justify-between items-center py-4'>
       <div>
@@ -10,7 +24,44 @@ const Navbar = () => {
       <div>
         <ThemeToggle />
       </div>
-      <div></div>
+      <div>
+        {!loading && (
+          <>
+            {session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="p-4 bg-secondary rounded-full items-center justify-center cursor-pointer">
+                    <User className="h-6 w-6" />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-foreground hover:text-primary transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </nav>
   );
 };
