@@ -31,6 +31,11 @@ export const categoryResolvers = {
       }: { name: string; slug: string; description?: string },
       ctx: Context
     ) => {
+      // PROTECTED: User must be logged in (you could add admin check here)
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to create a category");
+      }
+
       return await ctx.prisma.category.create({
         data: { name, slug, description },
       });
@@ -46,6 +51,10 @@ export const categoryResolvers = {
       }: { id: number; name?: string; slug?: string; description?: string },
       ctx: Context
     ) => {
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to update a category");
+      }
+
       return await ctx.prisma.category.update({
         where: { id },
         data: {
@@ -61,6 +70,10 @@ export const categoryResolvers = {
       { id }: { id: number },
       ctx: Context
     ) => {
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to delete a category");
+      }
+
       return await ctx.prisma.category.delete({
         where: { id },
       });

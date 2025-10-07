@@ -5,7 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { typeDefs } from "./graphql/typeDefs";
 import { resolvers } from "./graphql/resolvers";
-import { context } from "./graphql/context";
+import { createContext } from "./graphql/context";
 
 dotenv.config();
 
@@ -24,7 +24,7 @@ async function startServer() {
     cors<cors.CorsRequest>(),
     express.json(),
     expressMiddleware(server, {
-      context: async () => context, // or pass req/res if needed
+      context: async ({ req }) => createContext({ req }), // Pass request to context
     })
   );
 

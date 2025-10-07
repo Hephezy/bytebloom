@@ -45,6 +45,7 @@ export const postResolvers = {
           images: {
             orderBy: { order: "asc" },
           },
+          comments: true,
         },
         orderBy: { createdAt: "desc" },
       });
@@ -58,6 +59,10 @@ export const postResolvers = {
           category: true,
           images: {
             orderBy: { order: "asc" },
+          },
+          comments: {
+            include: { author: true },
+            orderBy: { createdAt: "desc" },
           },
         },
       });
@@ -76,6 +81,7 @@ export const postResolvers = {
           images: {
             orderBy: { order: "asc" },
           },
+          comments: true,
         },
       });
     },
@@ -93,6 +99,7 @@ export const postResolvers = {
           images: {
             orderBy: { order: "asc" },
           },
+          comments: true,
         },
         orderBy: { createdAt: "desc" },
       });
@@ -112,6 +119,11 @@ export const postResolvers = {
       }: CreatePostArgs,
       ctx: Context
     ) => {
+      // PROTECTED: User must be logged in
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to create a post");
+      }
+
       return await ctx.prisma.post.create({
         data: {
           title,
@@ -119,7 +131,7 @@ export const postResolvers = {
           published,
           coverImage,
           categoryId,
-          authorId: 1, // Temporary - will fix with auth on Day 3
+          authorId: ctx.userId,
           ...(images && {
             images: {
               create: images.map((img, index) => ({
@@ -137,6 +149,7 @@ export const postResolvers = {
           images: {
             orderBy: { order: "asc" },
           },
+          comments: true,
         },
       });
     },
@@ -154,6 +167,24 @@ export const postResolvers = {
       }: UpdatePostArgs,
       ctx: Context
     ) => {
+      // PROTECTED: User must be logged in
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to update a post");
+      }
+
+      // Check if post exists and belongs to user
+      const existingPost = await ctx.prisma.post.findUnique({
+        where: { id },
+      });
+
+      if (!existingPost) {
+        throw new Error("Post not found");
+      }
+
+      if (existingPost.authorId !== ctx.userId) {
+        throw new Error("You can only update your own posts");
+      }
+
       // If images are provided, delete old ones and create new ones
       if (images) {
         await ctx.prisma.image.deleteMany({
@@ -186,17 +217,37 @@ export const postResolvers = {
           images: {
             orderBy: { order: "asc" },
           },
+          comments: true,
         },
       });
     },
 
     deletePost: async (_: unknown, { id }: { id: number }, ctx: Context) => {
+      // PROTECTED: User must be logged in
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to delete a post");
+      }
+
+      // Check if post exists and belongs to user
+      const existingPost = await ctx.prisma.post.findUnique({
+        where: { id },
+      });
+
+      if (!existingPost) {
+        throw new Error("Post not found");
+      }
+
+      if (existingPost.authorId !== ctx.userId) {
+        throw new Error("You can only delete your own posts");
+      }
+
       return await ctx.prisma.post.delete({
         where: { id },
         include: {
           author: true,
           category: true,
           images: true,
+          comments: true,
         },
       });
     },
@@ -217,6 +268,13 @@ export const postResolvers = {
       return await ctx.prisma.image.findMany({
         where: { postId: parent.id },
         orderBy: { order: "asc" },
+      });
+    },
+    comments: async (parent: any, _: unknown, ctx: Context) => {
+      return await ctx.prisma.comment.findMany({
+        where: { postId: parent.id },
+        include: { author: true },
+        orderBy: { createdAt: "desc" },
       });
     },
   },

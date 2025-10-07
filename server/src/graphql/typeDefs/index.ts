@@ -18,10 +18,15 @@ const imageTypeDefs = readFileSync(join(__dirname, "./image.graphql"), {
   encoding: "utf-8",
 });
 
+const commentTypeDefs = readFileSync(join(__dirname, "./comment.graphql"), {
+  encoding: "utf-8",
+});
+
 // Export an array of all your type definitions
 export const typeDefs = [
   userTypeDefs,
   postTypeDefs,
   categoryTypeDefs,
   imageTypeDefs,
+  commentTypeDefs,
 ];
