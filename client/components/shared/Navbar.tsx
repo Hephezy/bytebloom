@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NavbarLinks } from '@/constants';
 
 const Navbar = () => {
   const { data: session, status } = useSession();
@@ -21,10 +22,21 @@ const Navbar = () => {
       <div>
         <h2>The Blog</h2>
       </div>
-      <div>
-        <ThemeToggle />
+      <div className=''>
+        <div className='hidden lg:flex gap-12 md:gap-8 items-center'>
+          {NavbarLinks.map((item) => (
+            <Link
+              key={item.label}
+              href={item.route}
+            >
+              <h2 className='text-primary font-semibold text-[18px]' >
+                {item.label}
+              </h2>
+            </Link>
+          ))}
+        </div>
       </div>
-      <div>
+      <div className='flex flex-row items-center justify-center gap-8'>
         {!loading && (
           <>
             {session ? (
@@ -61,6 +73,8 @@ const Navbar = () => {
             )}
           </>
         )}
+
+        <ThemeToggle />
       </div>
     </nav>
   );

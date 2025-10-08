@@ -15,7 +15,13 @@ type Post {
 }
 
 type Query {
-  getPosts(categoryId: Int, published: Boolean): [Post!]!
+  getPosts(
+    categoryId: Int
+    published: Boolean
+    limit: Int
+    offset: Int
+  ): [Post!]!
+  getRecentPosts(limit: Int): [Post!]!
   getPostById(id: Int!): Post
   getPostsByUser(userId: Int!): [Post!]!
   getPostsByCategory(categoryId: Int!): [Post!]!

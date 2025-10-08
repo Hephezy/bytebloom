@@ -135,6 +135,16 @@ export interface GetPostsQueryData {
 export interface GetPostsQueryVariables {
   categoryId?: number;
   published?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetRecentPostsQueryData {
+  getRecentPosts: Post[];
+}
+
+export interface GetRecentPostsQueryVariables {
+  limit?: number;
 }
 
 export interface GetPostByIdQueryData {

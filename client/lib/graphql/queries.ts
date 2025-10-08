@@ -5,8 +5,52 @@ import { gql } from "@apollo/client";
 // ============================================
 
 export const GET_POSTS_QUERY = gql`
-  query GetPosts($categoryId: Int, $published: Boolean) {
-    getPosts(categoryId: $categoryId, published: $published) {
+  query GetPosts(
+    $categoryId: Int
+    $published: Boolean
+    $limit: Int
+    $offset: Int
+  ) {
+    getPosts(
+      categoryId: $categoryId
+      published: $published
+      limit: $limit
+      offset: $offset
+    ) {
+      id
+      title
+      content
+      coverImage
+      published
+      createdAt
+      updatedAt
+      author {
+        id
+        name
+        email
+      }
+      category {
+        id
+        name
+        slug
+      }
+      images {
+        id
+        url
+        alt
+        caption
+        order
+      }
+      comments {
+        id
+      }
+    }
+  }
+`;
+
+export const GET_RECENT_POSTS_QUERY = gql`
+  query GetRecentPosts($limit: Int) {
+    getRecentPosts(limit: $limit) {
       id
       title
       content
