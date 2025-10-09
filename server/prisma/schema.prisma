@@ -18,28 +18,40 @@ model User {
 }
 
 model Post {
-  id          Int       @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   title       String
   content     String?
-  published   Boolean   @default(false)
+  published   Boolean            @default(false)
   coverImage  String?
-  category    Category  @relation(fields: [categoryId], references: [id])
-  categoryId  Int
+  categories  PostCategory[]     // Changed: many-to-many relation
   images      Image[]
   comments    Comment[]
-  author      User      @relation(fields: [authorId], references: [id])
+  author      User               @relation(fields: [authorId], references: [id])
   authorId    Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 }
 
 model Category {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  slug        String   @unique
+  id          Int            @id @default(autoincrement())
+  name        String         @unique
+  slug        String         @unique
   description String?
-  posts       Post[]
-  createdAt   DateTime @default(now())
+  posts       PostCategory[] // Changed: many-to-many relation
+  createdAt   DateTime       @default(now())
+}
+
+// Join table for many-to-many relationship
+model PostCategory {
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     Int
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId Int
+  assignedAt DateTime @default(now())
+
+  @@id([postId, categoryId])
+  @@index([postId])
+  @@index([categoryId])
 }
 
 model Image {

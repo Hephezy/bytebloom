@@ -1,4 +1,3 @@
-// client/lib/graphql/mutations.ts
 import { gql } from "@apollo/client";
 
 // ============================================
@@ -41,7 +40,7 @@ export const CREATE_POST_MUTATION = gql`
     $content: String
     $published: Boolean
     $coverImage: String
-    $categoryId: Int!
+    $categoryIds: [Int!]!
     $images: [ImageInput!]
   ) {
     createPost(
@@ -49,7 +48,7 @@ export const CREATE_POST_MUTATION = gql`
       content: $content
       published: $published
       coverImage: $coverImage
-      categoryId: $categoryId
+      categoryIds: $categoryIds
       images: $images
     ) {
       id
@@ -63,7 +62,7 @@ export const CREATE_POST_MUTATION = gql`
         name
         email
       }
-      category {
+      categories {
         id
         name
         slug
@@ -86,7 +85,7 @@ export const UPDATE_POST_MUTATION = gql`
     $content: String
     $published: Boolean
     $coverImage: String
-    $categoryId: Int
+    $categoryIds: [Int!]
     $images: [ImageInput!]
   ) {
     updatePost(
@@ -95,7 +94,7 @@ export const UPDATE_POST_MUTATION = gql`
       content: $content
       published: $published
       coverImage: $coverImage
-      categoryId: $categoryId
+      categoryIds: $categoryIds
       images: $images
     ) {
       id
@@ -108,7 +107,7 @@ export const UPDATE_POST_MUTATION = gql`
         id
         name
       }
-      category {
+      categories {
         id
         name
         slug

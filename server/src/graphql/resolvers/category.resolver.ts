@@ -4,7 +4,13 @@ export const categoryResolvers = {
   Query: {
     getCategories: async (_: unknown, __: unknown, ctx: Context) => {
       return await ctx.prisma.category.findMany({
-        include: { posts: true },
+        include: {
+          posts: {
+            include: {
+              post: true,
+            },
+          },
+        },
         orderBy: { name: "asc" },
       });
     },
@@ -16,7 +22,13 @@ export const categoryResolvers = {
     ) => {
       return await ctx.prisma.category.findUnique({
         where: { slug },
-        include: { posts: true },
+        include: {
+          posts: {
+            include: {
+              post: true,
+            },
+          },
+        },
       });
     },
   },
@@ -34,6 +46,17 @@ export const categoryResolvers = {
       // PROTECTED: User must be logged in (you could add admin check here)
       if (!ctx.userId) {
         throw new Error("You must be logged in to create a category");
+      }
+
+      // Check if category with same name or slug already exists
+      const existingCategory = await ctx.prisma.category.findFirst({
+        where: {
+          OR: [{ name: name }, { slug: slug }],
+        },
+      });
+
+      if (existingCategory) {
+        throw new Error("Category with this name or slug already exists");
       }
 
       return await ctx.prisma.category.create({
@@ -55,6 +78,27 @@ export const categoryResolvers = {
         throw new Error("You must be logged in to update a category");
       }
 
+      // If updating name or slug, check for duplicates
+      if (name || slug) {
+        const existingCategory = await ctx.prisma.category.findFirst({
+          where: {
+            AND: [
+              { id: { not: id } },
+              {
+                OR: [
+                  ...(name ? [{ name: name }] : []),
+                  ...(slug ? [{ slug: slug }] : []),
+                ],
+              },
+            ],
+          },
+        });
+
+        if (existingCategory) {
+          throw new Error("Category with this name or slug already exists");
+        }
+      }
+
       return await ctx.prisma.category.update({
         where: { id },
         data: {
@@ -74,6 +118,17 @@ export const categoryResolvers = {
         throw new Error("You must be logged in to delete a category");
       }
 
+      // Check if category has associated posts
+      const postsCount = await ctx.prisma.postCategory.count({
+        where: { categoryId: id },
+      });
+
+      if (postsCount > 0) {
+        throw new Error(
+          `Cannot delete category. It is associated with ${postsCount} post(s). Please remove or reassign these posts first.`
+        );
+      }
+
       return await ctx.prisma.category.delete({
         where: { id },
       });
@@ -82,9 +137,19 @@ export const categoryResolvers = {
 
   Category: {
     posts: async (parent: any, _: unknown, ctx: Context) => {
-      return await ctx.prisma.post.findMany({
+      const postCategories = await ctx.prisma.postCategory.findMany({
         where: { categoryId: parent.id },
+        include: {
+          post: {
+            include: {
+              author: true,
+              images: true,
+              comments: true,
+            },
+          },
+        },
       });
+      return postCategories.map((pc) => pc.post);
     },
   },
 };

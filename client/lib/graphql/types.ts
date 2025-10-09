@@ -27,8 +27,7 @@ export interface Post {
   updatedAt: string;
   author: User;
   authorId: number;
-  category: Category;
-  categoryId: number;
+  categories: Category[];
   images: Image[];
   comments: Comment[];
 }
@@ -38,7 +37,7 @@ export interface CreatePostInput {
   content?: string;
   published?: boolean;
   coverImage?: string;
-  categoryId: number;
+  categoryIds: number[];
   images?: ImageInput[];
 }
 
@@ -48,7 +47,7 @@ export interface UpdatePostInput {
   content?: string;
   published?: boolean;
   coverImage?: string;
-  categoryId?: number;
+  categoryIds?: number[];
   images?: ImageInput[];
 }
 
@@ -240,7 +239,7 @@ export interface CreatePostMutationVariables {
   content?: string;
   published?: boolean;
   coverImage?: string;
-  categoryId: number;
+  categoryIds: number[];
   images?: ImageInput[];
 }
 
@@ -254,7 +253,7 @@ export interface UpdatePostMutationVariables {
   content?: string;
   published?: boolean;
   coverImage?: string;
-  categoryId?: number;
+  categoryIds?: number[];
   images?: ImageInput[];
 }
 

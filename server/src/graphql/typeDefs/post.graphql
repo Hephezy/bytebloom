@@ -4,8 +4,7 @@ type Post {
   content: String
   published: Boolean!
   coverImage: String
-  category: Category!
-  categoryId: Int!
+  categories: [Category!]!
   images: [Image!]!
   comments: [Comment!]!
   author: User!
@@ -33,7 +32,7 @@ type Mutation {
     content: String
     published: Boolean
     coverImage: String
-    categoryId: Int!
+    categoryIds: [Int!]!
     images: [ImageInput!]
   ): Post!
 
@@ -43,7 +42,7 @@ type Mutation {
     content: String
     published: Boolean
     coverImage: String
-    categoryId: Int
+    categoryIds: [Int!]
     images: [ImageInput!]
   ): Post
 

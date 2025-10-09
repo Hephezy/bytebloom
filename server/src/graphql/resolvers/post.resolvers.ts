@@ -12,7 +12,7 @@ interface CreatePostArgs {
   content?: string;
   published?: boolean;
   coverImage?: string;
-  categoryId: number;
+  categoryIds: number[]; // Changed to array
   images?: ImageInput[];
 }
 
@@ -22,7 +22,7 @@ interface UpdatePostArgs {
   content?: string;
   published?: boolean;
   coverImage?: string;
-  categoryId?: number;
+  categoryIds?: number[]; // Changed to array
   images?: ImageInput[];
 }
 
@@ -36,12 +36,22 @@ export const postResolvers = {
     getPosts: async (_: unknown, args: GetPostsArgs, ctx: Context) => {
       return await ctx.prisma.post.findMany({
         where: {
-          ...(args.categoryId && { categoryId: args.categoryId }),
+          ...(args.categoryId && {
+            categories: {
+              some: {
+                categoryId: args.categoryId,
+              },
+            },
+          }),
           ...(args.published !== undefined && { published: args.published }),
         },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: {
             orderBy: { order: "asc" },
           },
@@ -56,7 +66,11 @@ export const postResolvers = {
         where: { id },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: {
             orderBy: { order: "asc" },
           },
@@ -77,7 +91,11 @@ export const postResolvers = {
         where: { authorId: userId },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: {
             orderBy: { order: "asc" },
           },
@@ -92,10 +110,20 @@ export const postResolvers = {
       ctx: Context
     ) => {
       return await ctx.prisma.post.findMany({
-        where: { categoryId },
+        where: {
+          categories: {
+            some: {
+              categoryId: categoryId,
+            },
+          },
+        },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: {
             orderBy: { order: "asc" },
           },
@@ -114,7 +142,7 @@ export const postResolvers = {
         content,
         published = false,
         coverImage,
-        categoryId,
+        categoryIds,
         images,
       }: CreatePostArgs,
       ctx: Context
@@ -124,14 +152,33 @@ export const postResolvers = {
         throw new Error("You must be logged in to create a post");
       }
 
+      // Validate that all categories exist
+      const categories = await ctx.prisma.category.findMany({
+        where: {
+          id: {
+            in: categoryIds,
+          },
+        },
+      });
+
+      if (categories.length !== categoryIds.length) {
+        throw new Error("One or more category IDs are invalid");
+      }
+
       return await ctx.prisma.post.create({
         data: {
           title,
           content,
           published,
           coverImage,
-          categoryId,
           authorId: ctx.userId,
+          categories: {
+            create: categoryIds.map((categoryId) => ({
+              category: {
+                connect: { id: categoryId },
+              },
+            })),
+          },
           ...(images && {
             images: {
               create: images.map((img, index) => ({
@@ -145,7 +192,11 @@ export const postResolvers = {
         },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: {
             orderBy: { order: "asc" },
           },
@@ -162,7 +213,7 @@ export const postResolvers = {
         content,
         published,
         coverImage,
-        categoryId,
+        categoryIds,
         images,
       }: UpdatePostArgs,
       ctx: Context
@@ -185,6 +236,26 @@ export const postResolvers = {
         throw new Error("You can only update your own posts");
       }
 
+      // If categoryIds provided, validate them
+      if (categoryIds) {
+        const categories = await ctx.prisma.category.findMany({
+          where: {
+            id: {
+              in: categoryIds,
+            },
+          },
+        });
+
+        if (categories.length !== categoryIds.length) {
+          throw new Error("One or more category IDs are invalid");
+        }
+
+        // Delete existing category associations
+        await ctx.prisma.postCategory.deleteMany({
+          where: { postId: id },
+        });
+      }
+
       // If images are provided, delete old ones and create new ones
       if (images) {
         await ctx.prisma.image.deleteMany({
@@ -199,7 +270,15 @@ export const postResolvers = {
           ...(content !== undefined && { content }),
           ...(published !== undefined && { published }),
           ...(coverImage !== undefined && { coverImage }),
-          ...(categoryId && { categoryId }),
+          ...(categoryIds && {
+            categories: {
+              create: categoryIds.map((categoryId) => ({
+                category: {
+                  connect: { id: categoryId },
+                },
+              })),
+            },
+          }),
           ...(images && {
             images: {
               create: images.map((img, index) => ({
@@ -213,7 +292,11 @@ export const postResolvers = {
         },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: {
             orderBy: { order: "asc" },
           },
@@ -245,7 +328,11 @@ export const postResolvers = {
         where: { id },
         include: {
           author: true,
-          category: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
           images: true,
           comments: true,
         },
@@ -259,10 +346,14 @@ export const postResolvers = {
         where: { id: parent.authorId },
       });
     },
-    category: async (parent: any, _: unknown, ctx: Context) => {
-      return await ctx.prisma.category.findUnique({
-        where: { id: parent.categoryId },
+    categories: async (parent: any, _: unknown, ctx: Context) => {
+      const postCategories = await ctx.prisma.postCategory.findMany({
+        where: { postId: parent.id },
+        include: {
+          category: true,
+        },
       });
+      return postCategories.map((pc) => pc.category);
     },
     images: async (parent: any, _: unknown, ctx: Context) => {
       return await ctx.prisma.image.findMany({

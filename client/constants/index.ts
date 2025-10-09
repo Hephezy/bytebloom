@@ -14,6 +14,10 @@ export const NavbarLinks: NavbarLink[] = [
     label: "About",
   },
   {
+    route: "/categories",
+    label: "Categories",
+  },
+  {
     route: "/newsletter",
     label: "Newsletter",
   },
