@@ -23,28 +23,17 @@ export default function ProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(session?.user?.name || "");
 
-  // Redirect if not logged in
-  if (status === "unauthenticated") {
-    router.push("/login");
-    return null;
-  }
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
+  // Move all hooks BEFORE any conditional returns
   // Parse user ID from session (assuming it's stored in the session)
-  const userId = parseInt(session?.user?.id || "1");
+  const userId = session?.user?.id ? parseInt(session.user.id as string) : null;
 
+  // Always call hooks at the top level, even if they won't be used
   const { data, loading, error, refetch } = useQuery<
     GetPostsByUserQueryData,
     GetPostsByUserQueryVariables
   >(GET_POSTS_BY_USER_QUERY, {
-    variables: { userId },
+    variables: { userId: userId || 0 }, // Pass 0 if userId is null, skip will prevent execution
+    skip: !userId, // Only run query if userId exists
   });
 
   const [deletePost] = useMutation<
@@ -59,6 +48,20 @@ export default function ProfilePage() {
       alert(`Error: ${err.message}`);
     },
   });
+
+  // Now do conditional redirects AFTER all hooks
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    router.push("/login");
+    return null;
+  }
 
   const handleDelete = async (id: number) => {
     if (confirm("Are you sure you want to delete this post?")) {
@@ -192,13 +195,18 @@ export default function ProfilePage() {
               )}
               <CardHeader>
                 <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
-                    {post.categories.map((category) => (
-                      <h2>{category.name}</h2>
-                    ))}
+                <div className="flex gap-2 flex-wrap">
+                  {post.categories?.map((category) => (
+                    <span
+                      key={category.id}
+                      className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs"
+                    >
+                      {category.name}
+                    </span>
+                  ))}
+                  <span className="text-sm text-muted-foreground">
+                    {post.published ? "Published" : "Draft"}
                   </span>
-                  <span>{post.published ? "Published" : "Draft"}</span>
                 </div>
               </CardHeader>
               <CardContent>

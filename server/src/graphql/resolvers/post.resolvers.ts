@@ -82,6 +82,30 @@ export const postResolvers = {
       });
     },
 
+    getRecentPosts: async (
+      _: unknown,
+      { limit }: { limit?: number },
+      ctx: Context
+    ) => {
+      return await ctx.prisma.post.findMany({
+        where: { published: true },
+        include: {
+          author: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
+          images: {
+            orderBy: { order: "asc" },
+          },
+          comments: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit || 10,
+      });
+    },
+
     getPostsByUser: async (
       _: unknown,
       { userId }: { userId: number },
@@ -151,6 +175,8 @@ export const postResolvers = {
       if (!ctx.userId) {
         throw new Error("You must be logged in to create a post");
       }
+
+      console.log(`[POST] Creating post "${title}" for user ${ctx.userId}`);
 
       // Validate that all categories exist
       const categories = await ctx.prisma.category.findMany({

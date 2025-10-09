@@ -20,7 +20,11 @@ export const categoryResolvers = {
       { slug }: { slug: string },
       ctx: Context
     ) => {
-      return await ctx.prisma.category.findUnique({
+      if (!slug || slug.trim() === "") {
+        throw new Error("Invalid category slug provided");
+      }
+
+      const category = await ctx.prisma.category.findUnique({
         where: { slug },
         include: {
           posts: {
@@ -30,6 +34,12 @@ export const categoryResolvers = {
           },
         },
       });
+
+      if (!category) {
+        throw new Error(`Category with slug "${slug}" not found`);
+      }
+
+      return category;
     },
   },
 
@@ -137,19 +147,24 @@ export const categoryResolvers = {
 
   Category: {
     posts: async (parent: any, _: unknown, ctx: Context) => {
-      const postCategories = await ctx.prisma.postCategory.findMany({
-        where: { categoryId: parent.id },
-        include: {
-          post: {
-            include: {
-              author: true,
-              images: true,
-              comments: true,
+      try {
+        const postCategories = await ctx.prisma.postCategory.findMany({
+          where: { categoryId: parent.id },
+          include: {
+            post: {
+              include: {
+                author: true,
+                images: true,
+                comments: true,
+              },
             },
           },
-        },
-      });
-      return postCategories.map((pc) => pc.post);
+        });
+        return postCategories.map((pc) => pc.post);
+      } catch (error) {
+        console.error(`Error loading posts for category ${parent.id}:`, error);
+        return [];
+      }
     },
   },
 };

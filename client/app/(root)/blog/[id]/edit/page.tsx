@@ -50,7 +50,7 @@ export default function EditPostPage() {
       setTitle(post.title);
       setContent(post.content || "");
       setCoverImage(post.coverImage || "");
-      setCategoryId(parseInt(post.category.id));
+      setCategoryId(parseInt(post.categories[0]?.id || '1'));
       setPublished(post.published);
     }
   }, [postData]);
@@ -87,7 +87,7 @@ export default function EditPostPage() {
         title,
         content,
         coverImage: coverImage || undefined,
-        categoryId,
+        categoryIds: [categoryId],
         published,
       },
     });

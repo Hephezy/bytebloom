@@ -63,7 +63,7 @@ export const GET_RECENT_POSTS_QUERY = gql`
         name
         email
       }
-      category {
+      categories {
         id
         name
         slug
@@ -97,7 +97,7 @@ export const GET_POST_BY_ID_QUERY = gql`
         name
         email
       }
-      category {
+      categories {
         id
         name
         slug
@@ -137,7 +137,7 @@ export const GET_POSTS_BY_USER_QUERY = gql`
         id
         name
       }
-      category {
+      categories {
         id
         name
         slug

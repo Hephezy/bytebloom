@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMutation, useQuery } from "@apollo/client/react";
@@ -14,8 +14,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
-import Quill from "quill";
-import "quill/dist/quill.snow.css";
+import QuillEditor from "@/components/shared/QuillEditor";
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -29,41 +28,11 @@ export default function CreatePostPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [published, setPublished] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<Quill | null>(null);
-
   // Redirect if not logged in
   if (status === "unauthenticated") {
     router.push("/login");
     return null;
   }
-
-  // Initialize Quill editor
-  useEffect(() => {
-    if (editorRef.current && !quillRef.current) {
-      quillRef.current = new Quill(editorRef.current, {
-        theme: "snow",
-        modules: {
-          toolbar: [
-            ["bold", "italic"],
-            [{ list: "ordered" }, { list: "bullet" }],
-            ["link", "blockquote", "code-block"],
-            [{ header: 1 }, { header: 2 }, { header: 3 }],
-          ],
-        },
-        placeholder: "Write your post content here...",
-      });
-
-      quillRef.current.on("text-change", () => {
-        setContent(quillRef.current?.root.innerHTML || "");
-      });
-    }
-
-    return () => {
-      quillRef.current?.off("text-change");
-    };
-  }, []);
 
   // Fetch categories
   const { data: categoriesData } = useQuery<GetCategoriesQueryData>(GET_CATEGORIES_QUERY);
@@ -103,10 +72,28 @@ export default function CreatePostPage() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
+
+      if (!categoriesData?.getCategories || categoriesData.getCategories.length === 0) {
+        alert("No categories are available. Please contact an administrator to create categories.");
+        return;
+      }
+
       if (filteredSuggestions.length > 0) {
         handleAddCategory(filteredSuggestions[0]);
       } else if (categoryInput.trim()) {
-        alert("Category not found. Please select from existing categories or contact admin to create new ones.");
+        const similarCategories = categoriesData?.getCategories
+          .filter(cat =>
+            cat.name.toLowerCase().includes(categoryInput.toLowerCase())
+          )
+          .map(c => c.name)
+          .join(", ");
+
+        if (similarCategories) {
+          alert(`"${categoryInput}" not found. Did you mean: ${similarCategories}?`);
+        } else {
+          alert(`Category "${categoryInput}" not found.\n\nAvailable categories:\n${categoriesData?.getCategories.map(c => `• ${c.name}`).join('\n') || 'None'
+            }\n\nIf you need a new category, please contact an administrator.`);
+        }
         setCategoryInput("");
       }
     } else if (e.key === "Backspace" && categoryInput === "" && selectedCategories.length > 0) {
@@ -116,6 +103,14 @@ export default function CreatePostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log("=== POST CREATION DEBUG ===");
+    console.log("Title:", title);
+    console.log("Content:", content);
+    console.log("Content length:", content.length);
+    console.log("Content is empty:", content.trim() === "");
+    console.log("Categories:", selectedCategories);
+    console.log("=========================");
 
     if (!title.trim()) {
       alert("Please enter a title");
@@ -128,11 +123,22 @@ export default function CreatePostPage() {
     }
 
     const categoryIds = selectedCategories
-      .map((cat) => Number(cat.id))
+      .map((cat) => {
+        const id = Number(cat.id);
+        if (isNaN(id)) {
+          console.error(`Invalid category ID: ${cat.id}`);
+        }
+        return id;
+      })
       .filter((id) => !isNaN(id));
 
     if (categoryIds.length === 0) {
       alert("Invalid category IDs. Please ensure selected categories have valid numeric IDs.");
+      return;
+    }
+
+    if (categoryIds.length !== selectedCategories.length) {
+      alert("One or more categories have invalid IDs. Please try again.");
       return;
     }
 
@@ -227,6 +233,25 @@ export default function CreatePostPage() {
                 >
                   Categories *
                 </label>
+
+                {/* Show loading state */}
+                {!categoriesData && (
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Loading categories...
+                  </div>
+                )}
+
+                {/* Show error if categories failed to load */}
+                {categoriesData?.getCategories && categoriesData.getCategories.length === 0 && (
+                  <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md text-sm mb-4">
+                    <p className="font-semibold mb-1">No categories available</p>
+                    <p>
+                      Please contact an administrator to create categories before creating posts.
+                      The system requires at least one category to organize content.
+                    </p>
+                  </div>
+                )}
+
                 <div className="relative">
                   <div className="w-full min-h-[42px] px-2 py-1 bg-background border border-input rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-ring flex flex-wrap gap-2 items-center">
                     {selectedCategories.map((category) => (
@@ -245,7 +270,6 @@ export default function CreatePostPage() {
                       </span>
                     ))}
                     <input
-                      ref={inputRef}
                       id="category"
                       type="text"
                       value={categoryInput}
@@ -258,6 +282,7 @@ export default function CreatePostPage() {
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                       className="flex-1 min-w-[120px] outline-none bg-transparent text-foreground placeholder:text-muted-foreground"
                       placeholder={selectedCategories.length === 0 ? "Type to search categories..." : ""}
+                      disabled={!categoriesData?.getCategories || categoriesData.getCategories.length === 0}
                     />
                   </div>
                   {showSuggestions && filteredSuggestions.length > 0 && (
@@ -284,13 +309,11 @@ export default function CreatePostPage() {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Content
                 </label>
-                <div
-                  ref={editorRef}
-                  className="min-h-[300px] bg-background border border-input rounded-md text-foreground"
+                <QuillEditor
+                  value={content}
+                  onChange={setContent}
+                  placeholder="Write your post content here..."
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {quillRef.current ? quillRef.current.getText().length - 1 : 0} characters
-                </p>
               </div>
 
               <div className="flex items-center gap-3">

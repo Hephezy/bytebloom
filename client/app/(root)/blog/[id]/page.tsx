@@ -109,7 +109,7 @@ export default function SinglePostPage() {
           {/* Category Badge */}
           <div className="mb-4">
             <span className="inline-block px-3 py-1 text-sm font-semibold bg-primary/10 text-primary rounded-full">
-              {post.category.name}
+              {post.categories[0]?.name || 'Uncategorized'}
             </span>
           </div>
 

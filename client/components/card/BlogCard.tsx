@@ -12,8 +12,15 @@ interface BlogCardProps {
 }
 
 const BlogCard = ({ post, direction }: BlogCardProps) => {
+
+  // Validate post data
+  if (!post || !post.id) {
+    return null;
+  }
+
   const description = extractDescription(post.content, 150);
   const formattedDate = formatDate(post.createdAt);
+  const category = post.categories?.[0];
 
   return (
     <Link href={`/blog/${post.id}`}>
@@ -49,9 +56,15 @@ const BlogCard = ({ post, direction }: BlogCardProps) => {
           <CardHeader className="pb-3">
             {/* Category Badge */}
             <div className="mb-2">
-              <span className="inline-block px-3 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
-                {post.category.name}
-              </span>
+              {category ? (
+                <span className="inline-block px-3 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
+                  {category.name}
+                </span>
+              ) : (
+                <span className="inline-block px-3 py-1 text-xs font-semibold bg-muted/10 text-muted rounded-full">
+                  Uncategorized
+                </span>
+              )}
             </div>
 
             {/* Title */}
