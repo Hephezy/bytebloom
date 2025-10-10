@@ -9,8 +9,8 @@ type Post {
   comments: [Comment!]!
   author: User!
   authorId: Int!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type Query {

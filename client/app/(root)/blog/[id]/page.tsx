@@ -149,11 +149,14 @@ export default function SinglePostPage() {
           )}
 
           {/* Content */}
-          <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
-            <div className="whitespace-pre-wrap text-foreground leading-relaxed">
-              {post.content}
+          {post.content && (
+            <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
+              <div
+                className="text-foreground leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
             </div>
-          </div>
+          )}
 
           {/* Content Images */}
           {post.images.length > 0 && (

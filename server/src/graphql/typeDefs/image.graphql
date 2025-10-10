@@ -5,7 +5,7 @@ type Image {
   caption: String
   postId: Int!
   order: Int!
-  createdAt: String!
+  createdAt: DateTime!
 }
 
 input ImageInput {

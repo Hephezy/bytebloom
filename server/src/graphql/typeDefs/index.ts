@@ -22,8 +22,13 @@ const commentTypeDefs = readFileSync(join(__dirname, "./comment.graphql"), {
   encoding: "utf-8",
 });
 
+const scalarsTypeDefs = readFileSync(join(__dirname, "./scalars.graphql"), {
+  encoding: "utf-8",
+});
+
 // Export an array of all your type definitions
 export const typeDefs = [
+  scalarsTypeDefs,
   userTypeDefs,
   postTypeDefs,
   categoryTypeDefs,

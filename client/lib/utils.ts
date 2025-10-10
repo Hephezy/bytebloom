@@ -33,18 +33,59 @@ export function extractDescription(
   return finalText + "...";
 }
 
-export function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) {
+export function formatDate(
+  dateString: string | number | null | undefined
+): string {
+  if (!dateString && dateString !== 0) {
     return "Invalid date";
   }
 
   try {
-    // Parse the date string
-    const date = new Date(dateString);
+    let date: Date;
+
+    // Handle Unix timestamp (number in milliseconds or seconds)
+    if (typeof dateString === "number") {
+      // JavaScript timestamps should be 13 digits (milliseconds)
+      // Unix timestamps are 10 digits (seconds)
+      const timestampStr = dateString.toString();
+
+      // Debug logging
+      console.log("formatDate DEBUG:", {
+        input: dateString,
+        length: timestampStr.length,
+        type: typeof dateString,
+      });
+
+      if (timestampStr.length === 10) {
+        // Seconds - convert to milliseconds
+        date = new Date(dateString * 1000);
+      } else if (timestampStr.length === 13) {
+        // Milliseconds - use as is
+        date = new Date(dateString);
+      } else {
+        // Invalid timestamp length - try anyway but log warning
+        console.warn(
+          `Unusual timestamp length: ${dateString} (length: ${timestampStr.length})`
+        );
+        date = new Date(dateString);
+      }
+    } else {
+      // Handle string date (ISO format, etc.)
+      console.log("formatDate - String input:", dateString);
+      date = new Date(dateString);
+    }
+
+    // Additional debug for the created date
+    console.log("Created date:", {
+      dateObject: date,
+      timestamp: date.getTime(),
+      isValid: !isNaN(date.getTime()),
+      formatted: date.toString(),
+    });
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.warn(`Invalid date string: ${dateString}`);
+      console.error(`Failed to create valid date from: ${dateString}`);
       return "Invalid date";
     }
 
@@ -55,22 +96,45 @@ export function formatDate(dateString: string | null | undefined): string {
       day: "numeric",
     });
   } catch (error) {
-    console.error("Error formatting date:", error);
+    console.error("Error formatting date:", error, "Input was:", dateString);
     return "Invalid date";
   }
 }
 
-export function getRelativeTime(dateString: string | null | undefined): string {
-  if (!dateString) {
+export function getRelativeTime(
+  dateString: string | number | null | undefined
+): string {
+  if (!dateString && dateString !== 0) {
     return "Unknown time";
   }
 
   try {
-    const date = new Date(dateString);
+    let date: Date;
+
+    // Handle Unix timestamp (number in milliseconds or seconds)
+    if (typeof dateString === "number") {
+      const timestampStr = dateString.toString();
+
+      if (timestampStr.length === 10) {
+        // Seconds - convert to milliseconds
+        date = new Date(dateString * 1000);
+      } else if (timestampStr.length === 13) {
+        // Milliseconds - use as is
+        date = new Date(dateString);
+      } else {
+        // Invalid timestamp length
+        console.warn(
+          `Invalid timestamp format: ${dateString} (length: ${timestampStr.length})`
+        );
+        return "Unknown time";
+      }
+    } else {
+      date = new Date(dateString);
+    }
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.warn(`Invalid date string: ${dateString}`);
+      console.warn(`Invalid date: ${dateString}`);
       return "Unknown time";
     }
 

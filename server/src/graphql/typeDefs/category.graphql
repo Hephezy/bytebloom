@@ -4,7 +4,7 @@ type Category {
   slug: String!
   description: String
   posts: [Post!]!
-  createdAt: String!
+  createdAt: DateTime!
 }
 
 type Query {

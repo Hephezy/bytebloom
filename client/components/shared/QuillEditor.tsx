@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 
@@ -21,14 +21,19 @@ export default function QuillEditor({
   const quillRef = useRef<Quill | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [characterCount, setCharacterCount] = useState(0);
+  const onChangeRef = useRef(onChange);
 
+  // Keep onChange ref updated
   useEffect(() => {
-    // Only initialize on client side
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  // Initialize Quill
+  useEffect(() => {
     if (typeof window === "undefined" || !editorRef.current) {
       return;
     }
 
-    // Prevent multiple initializations
     if (quillRef.current) {
       return;
     }
@@ -49,63 +54,66 @@ export default function QuillEditor({
         readOnly: readOnly,
       });
 
-      // Set initial content if value exists
+      // Set initial content if provided
       if (value && value.trim() !== "") {
         quillRef.current.root.innerHTML = value;
-        const text = quillRef.current.getText();
-        setCharacterCount(Math.max(0, text.length - 1));
+        updateCharacterCount();
       }
 
       // Handle text changes
-      const handleChange = () => {
-        const content = quillRef.current?.root.innerHTML || "";
-        const text = quillRef.current?.getText() || "";
-        onChange(content);
-        setCharacterCount(Math.max(0, text.length - 1));
+      const handleTextChange = (delta: any, oldDelta: any, source: string) => {
+        if (source === "user") {
+          const html = quillRef.current?.root.innerHTML || "";
+          onChangeRef.current(html);
+          updateCharacterCount();
+        }
       };
 
-      quillRef.current.on("text-change", handleChange);
+      quillRef.current.on("text-change", handleTextChange);
 
       setIsLoaded(true);
     } catch (error) {
       console.error("Error initializing Quill editor:", error);
     }
+  }, [placeholder, readOnly]);
 
-    // Cleanup
-    return () => {
-      if (quillRef.current) {
-        quillRef.current.off("text-change");
-      }
-    };
-  }, [placeholder, readOnly]); // Remove 'onChange' from dependency to prevent infinite loops
+  const updateCharacterCount = useCallback(() => {
+    if (quillRef.current) {
+      const text = quillRef.current.getText();
+      setCharacterCount(Math.max(0, text.length - 1));
+    }
+  }, []);
 
-  // Update content when value prop changes (for edit mode)
+  // Handle external value changes (for edit mode)
   useEffect(() => {
-    if (quillRef.current && isLoaded) {
-      const currentContent = quillRef.current.root.innerHTML;
-
-      // Only update if content actually changed and value is different
-      if (value && value.trim() !== "" && currentContent !== value) {
-        // Save cursor position
-        const selection = quillRef.current.getSelection();
+    if (quillRef.current && isLoaded && value) {
+      const currentHtml = quillRef.current.root.innerHTML;
+      if (value !== currentHtml && value.trim() !== "") {
         quillRef.current.root.innerHTML = value;
-
-        // Restore cursor position if it existed
-        if (selection) {
-          quillRef.current.setSelection(selection.index, selection.length);
-        }
-
-        const text = quillRef.current.getText();
-        setCharacterCount(Math.max(0, text.length - 1));
+        updateCharacterCount();
       }
     }
-  }, [value, isLoaded]);
+  }, [value, isLoaded, updateCharacterCount]);
 
   return (
     <div className="quill-editor-wrapper">
+      <style jsx>{`
+        :global(.ql-container) {
+          font-family: inherit;
+          font-size: inherit;
+        }
+        :global(.ql-editor) {
+          min-height: 300px;
+          padding: 12px;
+        }
+        :global(.ql-editor.ql-blank::before) {
+          color: var(--color-muted-foreground);
+          font-style: italic;
+        }
+      `}</style>
       <div
         ref={editorRef}
-        className="min-h-[300px] bg-background border border-input rounded-md text-foreground [&_.ql-toolbar]:border-input [&_.ql-container]:border-input [&_.ql-editor]:bg-background [&_.ql-editor]:text-foreground"
+        className="min-h-[300px] bg-background border border-input rounded-md text-foreground"
       />
       <p className="text-xs text-muted-foreground mt-1">
         {characterCount} characters

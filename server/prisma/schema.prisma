@@ -14,7 +14,7 @@ model User {
   name      String?
   posts     Post[]
   comments  Comment[]
-  createdAt DateTime  @default(now())
+  createdAt DateTime!  @default(now())
 }
 
 model Post {
@@ -28,8 +28,8 @@ model Post {
   comments    Comment[]
   author      User               @relation(fields: [authorId], references: [id])
   authorId    Int
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  createdAt   DateTime!           @default(now())
+  updatedAt   DateTime!           @updatedAt
 }
 
 model Category {
@@ -38,7 +38,7 @@ model Category {
   slug        String         @unique
   description String?
   posts       PostCategory[] // Changed: many-to-many relation
-  createdAt   DateTime       @default(now())
+  createdAt   DateTime!       @default(now())
 }
 
 // Join table for many-to-many relationship
@@ -47,7 +47,7 @@ model PostCategory {
   postId     Int
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
-  assignedAt DateTime @default(now())
+  assignedAt DateTime! @default(now())
 
   @@id([postId, categoryId])
   @@index([postId])
@@ -62,7 +62,7 @@ model Image {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
   order     Int      @default(0)
-  createdAt DateTime @default(now())
+  createdAt DateTime! @default(now())
 }
 
 model Comment {
@@ -72,6 +72,6 @@ model Comment {
   postId    Int
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime! @default(now())
+  updatedAt DateTime! @updatedAt
 }

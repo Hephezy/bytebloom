@@ -11,6 +11,11 @@ interface BlogCardProps {
   direction: LayoutDirection;
 }
 
+// Custom loader that bypasses Next.js optimization for external URLs
+const customLoader = ({ src }: { src: string }) => {
+  return src;
+};
+
 const BlogCard = ({ post, direction }: BlogCardProps) => {
 
   // Validate post data
@@ -42,6 +47,8 @@ const BlogCard = ({ post, direction }: BlogCardProps) => {
               src={post.coverImage}
               alt={post.title}
               fill
+              loader={customLoader}
+              unoptimized // Skip Next.js optimization for external images
               className="object-cover hover:scale-105 transition-transform duration-300"
             />
           ) : (

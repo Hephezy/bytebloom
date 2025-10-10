@@ -5,8 +5,8 @@ type Comment {
   postId: Int!
   author: User!
   authorId: Int!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 extend type Query {
