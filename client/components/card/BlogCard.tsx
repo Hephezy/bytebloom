@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Post } from '@/lib/graphql';
 import { extractDescription, formatDate } from '@/lib/utils';
@@ -10,11 +9,6 @@ interface BlogCardProps {
   post: Post;
   direction: LayoutDirection;
 }
-
-// Custom loader that bypasses Next.js optimization for external URLs
-const customLoader = ({ src }: { src: string }) => {
-  return src;
-};
 
 const BlogCard = ({ post, direction }: BlogCardProps) => {
 
@@ -43,13 +37,13 @@ const BlogCard = ({ post, direction }: BlogCardProps) => {
           ${direction === "column" ? "w-full h-48" : "w-1/3 h-full min-h-[200px]"}
         `}>
           {post.coverImage ? (
-            <Image
+            <img
               src={post.coverImage}
               alt={post.title}
-              fill
-              loader={customLoader}
-              unoptimized // Skip Next.js optimization for external images
-              className="object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">

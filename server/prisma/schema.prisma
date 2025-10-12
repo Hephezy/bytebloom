@@ -14,7 +14,10 @@ model User {
   name      String?
   posts     Post[]
   comments  Comment[]
-  createdAt DateTime!  @default(now())
+  followers User[]    @relation("UserFollows")
+  following User[]    @relation("UserFollows")
+  interactions PostInteraction[]
+  createdAt DateTime  @default(now())
 }
 
 model Post {
@@ -23,13 +26,30 @@ model Post {
   content     String?
   published   Boolean            @default(false)
   coverImage  String?
+  likes       Int                @default(0)
+  shares      Int                @default(0)
   categories  PostCategory[]     // Changed: many-to-many relation
   images      Image[]
   comments    Comment[]
   author      User               @relation(fields: [authorId], references: [id])
   authorId    Int
-  createdAt   DateTime!           @default(now())
-  updatedAt   DateTime!           @updatedAt
+  interactions PostInteraction[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model PostInteraction {
+  id      Int     @id @default(autoincrement())
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  Int
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int
+  liked   Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
 }
 
 model Category {
@@ -38,7 +58,7 @@ model Category {
   slug        String         @unique
   description String?
   posts       PostCategory[] // Changed: many-to-many relation
-  createdAt   DateTime!       @default(now())
+  createdAt   DateTime       @default(now())
 }
 
 // Join table for many-to-many relationship
@@ -47,7 +67,7 @@ model PostCategory {
   postId     Int
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
-  assignedAt DateTime! @default(now())
+  assignedAt DateTime @default(now())
 
   @@id([postId, categoryId])
   @@index([postId])
@@ -62,7 +82,7 @@ model Image {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
   order     Int      @default(0)
-  createdAt DateTime! @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Comment {
@@ -72,6 +92,15 @@ model Comment {
   postId    Int
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
-  createdAt DateTime! @default(now())
-  updatedAt DateTime! @updatedAt
+  likes     Int      @default(0)
+  likedBy   Int[]    @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  subscribedAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }

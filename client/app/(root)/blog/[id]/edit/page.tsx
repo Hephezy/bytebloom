@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import ImageUpload from "@/components/shared/ImageUpload";
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -152,7 +153,7 @@ export default function EditPostPage() {
               </div>
 
               {/* Cover Image URL */}
-              <div>
+              {/* <div>
                 <label
                   htmlFor="coverImage"
                   className="block text-sm font-medium text-foreground mb-2"
@@ -179,7 +180,13 @@ export default function EditPostPage() {
                     />
                   </div>
                 )}
-              </div>
+              </div> */}
+
+              <ImageUpload
+                label="Cover Image"
+                onUploadComplete={(url) => setCoverImage(url)}
+                currentImage={coverImage}
+              />
 
               {/* Category */}
               <div>

@@ -1,0 +1,11 @@
+type UploadResult {
+  url: String!
+  publicId: String!
+  width: Int!
+  height: Int!
+}
+
+extend type Mutation {
+  uploadImage(file: String!): UploadResult!
+  deleteImage(publicId: String!): Boolean!
+}

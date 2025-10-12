@@ -31,6 +31,41 @@ export const LOGIN_MUTATION = gql`
 `;
 
 // ============================================
+// USER MUTATIONS
+// ============================================
+
+export const UPDATE_USER_MUTATION = gql`
+  mutation UpdateUser($id: Int!, $name: String) {
+    updateUser(id: $id, name: $name) {
+      id
+      email
+      name
+    }
+  }
+`;
+
+// ============================================
+// UPLOAD MUTATIONS
+// ============================================
+
+export const UPLOAD_IMAGE_MUTATION = gql`
+  mutation UploadImage($file: String!) {
+    uploadImage(file: $file) {
+      url
+      publicId
+      width
+      height
+    }
+  }
+`;
+
+export const DELETE_IMAGE_MUTATION = gql`
+  mutation DeleteImage($publicId: String!) {
+    deleteImage(publicId: $publicId)
+  }
+`;
+
+// ============================================
 // POST MUTATIONS
 // ============================================
 
@@ -222,6 +257,98 @@ export const DELETE_CATEGORY_MUTATION = gql`
     deleteCategory(id: $id) {
       id
       name
+    }
+  }
+`;
+
+// ========================================
+// NEWSLETTER MUTATION
+// ========================================
+
+export const SUBSCRIBE_TO_NEWSLETTER_MUTATION = gql`
+  mutation SubscribeToNewsletter($email: String!) {
+    subscribeToNewsletter(email: $email) {
+      id
+      email
+      subscribedAt
+    }
+  }
+`;
+
+// ======================================
+// SOCIAL MUTATION
+// ======================================
+
+export const LIKE_POST_MUTATION = gql`
+  mutation LikePost($postId: Int!) {
+    likePost(postId: $postId) {
+      id
+      title
+      likes
+    }
+  }
+`;
+
+export const UNLIKE_POST_MUTATION = gql`
+  mutation UnlikePost($postId: Int!) {
+    unlikePost(postId: $postId) {
+      id
+      title
+      likes
+    }
+  }
+`;
+
+export const SHARE_POST_MUTATION = gql`
+  mutation SharePost($postId: Int!) {
+    sharePost(postId: $postId) {
+      id
+      title
+      shares
+    }
+  }
+`;
+
+export const LIKE_COMMENT_MUTATION = gql`
+  mutation LikeComment($commentId: Int!) {
+    likeComment(commentId: $commentId) {
+      id
+      content
+      likes
+      likedBy
+    }
+  }
+`;
+
+export const UNLIKE_COMMENT_MUTATION = gql`
+  mutation UnlikeComment($commentId: Int!) {
+    unlikeComment(commentId: $commentId) {
+      id
+      content
+      likes
+      likedBy
+    }
+  }
+`;
+
+export const FOLLOW_USER_MUTATION = gql`
+  mutation FollowUser($userId: Int!) {
+    followUser(userId: $userId) {
+      id
+      name
+      followers
+      bio
+    }
+  }
+`;
+
+export const UNFOLLOW_USER_MUTATION = gql`
+  mutation UnfollowUser($userId: Int!) {
+    unfollowUser(userId: $userId) {
+      id
+      name
+      followers
+      bio
     }
   }
 `;

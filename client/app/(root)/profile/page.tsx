@@ -9,31 +9,32 @@ import { Pencil, Trash2, Plus, Eye } from "lucide-react";
 import {
   GET_POSTS_BY_USER_QUERY,
   DELETE_POST_MUTATION,
+  UPDATE_USER_MUTATION,
   GetPostsByUserQueryData,
   GetPostsByUserQueryVariables,
   DeletePostMutationData,
   DeletePostMutationVariables,
+  UpdateUserMutationData,
+  UpdateUserMutationVariables,
 } from "@/lib/graphql";
 import { formatDate } from "@/lib/utils";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(session?.user?.name || "");
 
   // Move all hooks BEFORE any conditional returns
-  // Parse user ID from session (assuming it's stored in the session)
   const userId = session?.user?.id ? parseInt(session.user.id as string) : null;
 
-  // Always call hooks at the top level, even if they won't be used
   const { data, loading, error, refetch } = useQuery<
     GetPostsByUserQueryData,
     GetPostsByUserQueryVariables
   >(GET_POSTS_BY_USER_QUERY, {
-    variables: { userId: userId || 0 }, // Pass 0 if userId is null, skip will prevent execution
-    skip: !userId, // Only run query if userId exists
+    variables: { userId: userId || 0 },
+    skip: !userId,
   });
 
   const [deletePost] = useMutation<
@@ -43,6 +44,26 @@ export default function ProfilePage() {
     onCompleted: () => {
       alert("Post deleted successfully!");
       refetch();
+    },
+    onError: (err) => {
+      alert(`Error: ${err.message}`);
+    },
+  });
+
+  const [updateUser, { loading: updateLoading }] = useMutation<
+    UpdateUserMutationData,
+    UpdateUserMutationVariables
+  >(UPDATE_USER_MUTATION, {
+    onCompleted: (data) => {
+      alert("Profile updated successfully!");
+      // Update the session with new name
+      updateSession({
+        user: {
+          ...session?.user,
+          name: data.updateUser.name,
+        },
+      });
+      setEditMode(false);
     },
     onError: (err) => {
       alert(`Error: ${err.message}`);
@@ -69,10 +90,20 @@ export default function ProfilePage() {
     }
   };
 
-  const handleUpdateProfile = () => {
-    // TODO: Add user update mutation
-    alert("Profile update feature coming soon!");
-    setEditMode(false);
+  const handleUpdateProfile = async () => {
+    if (!userId) return;
+
+    if (!name.trim()) {
+      alert("Name cannot be empty");
+      return;
+    }
+
+    await updateUser({
+      variables: {
+        id: userId,
+        name: name.trim(),
+      },
+    });
   };
 
   return (
@@ -94,7 +125,8 @@ export default function ProfilePage() {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="text-2xl font-bold bg-background border border-input rounded px-2 py-1"
+                      className="text-2xl font-bold bg-background border border-input rounded px-2 py-1 text-foreground"
+                      placeholder="Enter your name"
                     />
                   ) : (
                     <h1 className="text-3xl font-bold text-foreground">
@@ -109,13 +141,17 @@ export default function ProfilePage() {
                   <>
                     <button
                       onClick={handleUpdateProfile}
-                      className="px-4 py-2 bg-primary text-primary-foreground cursor-pointer  rounded-md"
+                      disabled={updateLoading}
+                      className="px-4 py-2 bg-primary text-primary-foreground cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Save
+                      {updateLoading ? "Saving..." : "Save"}
                     </button>
                     <button
-                      onClick={() => setEditMode(false)}
-                      className="px-4 py-2 bg-secondary text-secondary-foreground cursor-pointer  rounded-md"
+                      onClick={() => {
+                        setEditMode(false);
+                        setName(session?.user?.name || "");
+                      }}
+                      className="px-4 py-2 bg-secondary text-secondary-foreground cursor-pointer rounded-md"
                     >
                       Cancel
                     </button>

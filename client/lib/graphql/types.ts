@@ -13,6 +13,42 @@ export interface AuthPayload {
   user: User;
 }
 
+export interface UpdateUserMutationData {
+  updateUser: User;
+}
+
+export interface UpdateUserMutationVariables {
+  id: number;
+  name?: string;
+}
+
+// ============================================
+// UPLOAD TYPES
+// ============================================
+
+export interface UploadResult {
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+}
+
+export interface UploadImageMutationData {
+  uploadImage: UploadResult;
+}
+
+export interface UploadImageMutationVariables {
+  file: string;
+}
+
+export interface DeleteImageMutationData {
+  deleteImage: boolean;
+}
+
+export interface DeleteImageMutationVariables {
+  publicId: string;
+}
+
 // ============================================
 // POST TYPES
 // ============================================
@@ -318,4 +354,110 @@ export interface DeleteCategoryMutationData {
 
 export interface DeleteCategoryMutationVariables {
   id: number;
+}
+
+// ========================================
+// NEWSLETTER TYPES
+// ========================================
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  subscribedAt: string;
+}
+
+export interface SubscribeToNewsletterMutationData {
+  subscribeToNewsletter: NewsletterSubscriber;
+}
+
+export interface SubscribeToNewsletterMutationVariables {
+  email: string;
+}
+
+export interface LikePostMutationData {
+  likePost: Post;
+}
+
+export interface LikePostMutationVariables {
+  postId: number;
+}
+
+export interface UnlikePostMutationData {
+  unlikePost: Post;
+}
+
+export interface UnlikePostMutationVariables {
+  postId: number;
+}
+
+export interface SharePostMutationData {
+  sharePost: Post;
+}
+
+export interface SharePostMutationVariables {
+  postId: number;
+}
+
+export interface LikeCommentMutationData {
+  likeComment: Comment;
+}
+
+export interface LikeCommentMutationVariables {
+  commentId: number;
+}
+
+export interface UnlikeCommentMutationData {
+  unlikeComment: Comment;
+}
+
+export interface UnlikeCommentMutationVariables {
+  commentId: number;
+}
+
+export interface FollowUserMutationData {
+  followUser: User;
+}
+
+export interface FollowUserMutationVariables {
+  userId: number;
+}
+
+export interface UnfollowUserMutationData {
+  unfollowUser: User;
+}
+
+export interface UnfollowUserMutationVariables {
+  userId: number;
+}
+
+export interface GetUserByIdQueryData {
+  getUserById: User & {
+    followers: number;
+    following: number;
+    postsCount: number;
+  };
+}
+
+export interface GetUserByIdQueryVariables {
+  id: number;
+}
+
+export interface GetUserStatsQueryData {
+  getUserStats: {
+    id: number;
+    postsCount: number;
+    followersCount: number;
+    followingCount: number;
+  };
+}
+
+export interface GetUserStatsQueryVariables {
+  id: number;
+}
+
+export interface IsPostLikedQueryData {
+  isPostLiked: boolean;
+}
+
+export interface IsPostLikedQueryVariables {
+  postId: number;
 }

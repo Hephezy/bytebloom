@@ -10,6 +10,10 @@ interface UpdateCommentArgs {
   content: string;
 }
 
+interface LikeCommentArgs {
+  commentId: number;
+}
+
 export const commentResolvers = {
   Query: {
     getCommentsByPost: async (
@@ -111,6 +115,70 @@ export const commentResolvers = {
 
       return await ctx.prisma.comment.delete({
         where: { id },
+        include: { author: true, post: true },
+      });
+    },
+
+    likeComment: async (
+      _: unknown,
+      { commentId }: LikeCommentArgs,
+      ctx: Context
+    ) => {
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to like a comment");
+      }
+
+      const comment = await ctx.prisma.comment.findUnique({
+        where: { id: commentId },
+      });
+
+      if (!comment) {
+        throw new Error("Comment not found");
+      }
+
+      const alreadyLiked = comment.likedBy.includes(ctx.userId);
+      if (alreadyLiked) {
+        throw new Error("You already liked this comment");
+      }
+
+      return await ctx.prisma.comment.update({
+        where: { id: commentId },
+        data: {
+          likes: comment.likes + 1,
+          likedBy: [...comment.likedBy, ctx.userId],
+        },
+        include: { author: true, post: true },
+      });
+    },
+
+    unlikeComment: async (
+      _: unknown,
+      { commentId }: LikeCommentArgs,
+      ctx: Context
+    ) => {
+      if (!ctx.userId) {
+        throw new Error("You must be logged in to unlike a comment");
+      }
+
+      const comment = await ctx.prisma.comment.findUnique({
+        where: { id: commentId },
+      });
+
+      if (!comment) {
+        throw new Error("Comment not found");
+      }
+
+      const hasLiked = comment.likedBy.includes(ctx.userId);
+      if (!hasLiked) {
+        throw new Error("You haven't liked this comment");
+      }
+
+      return await ctx.prisma.comment.update({
+        where: { id: commentId },
+        data: {
+          likes: comment.likes - 1,
+          likedBy: comment.likedBy.filter((id) => id !== ctx.userId),
+        },
         include: { author: true, post: true },
       });
     },

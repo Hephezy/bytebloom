@@ -2,6 +2,11 @@ type User {
   id: ID!
   email: String!
   name: String
+  bio: String
+  avatar: String
+  followers: Int!
+  following: Int!
+  postsCount: Int!
 }
 
 type AuthPayload {
@@ -12,9 +17,21 @@ type AuthPayload {
 type Query {
   # We can add queries here later, e.g., me: User
   hello: String
+  getUserById(id: Int!): User
+  getUserStats(id: Int!): UserStats!
+}
+
+type UserStats {
+  id: Int!
+  postsCount: Int!
+  followersCount: Int!
+  followingCount: Int!
 }
 
 type Mutation {
   register(email: String!, password: String!, name: String): AuthPayload!
   login(email: String!, password: String!): AuthPayload!
+  updateUser(id: Int!, name: String): User!
+  followUser(userId: Int!): User!
+  unfollowUser(userId: Int!): User!
 }

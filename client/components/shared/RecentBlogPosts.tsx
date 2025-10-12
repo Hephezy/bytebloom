@@ -73,7 +73,7 @@ const RecentBlogPosts = ({ direction, limit }: RecentBlogPostsProps) => {
           {/* First row: 1 large + 2 small stacked */}
           <div className='flex flex-row gap-6'>
             {/* Large card on left */}
-            <div className='flex-1'>
+            <div className='flex-1 flex'>
               {posts[0] && (
                 <BlogCard
                   key={posts[0].id}

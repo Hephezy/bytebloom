@@ -7,6 +7,8 @@ type Comment {
   authorId: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  likes: Int!
+  likedBy: [Int!]!
 }
 
 extend type Query {
@@ -18,4 +20,6 @@ extend type Mutation {
   createComment(postId: Int!, content: String!): Comment!
   updateComment(id: Int!, content: String!): Comment
   deleteComment(id: Int!): Comment
+  likeComment(commentId: Int!): Comment!
+  unlikeComment(commentId: Int!): Comment!
 }

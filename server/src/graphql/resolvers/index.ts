@@ -3,6 +3,9 @@ import { userResolvers } from "./user.resolvers";
 import { postResolvers } from "./post.resolvers";
 import { categoryResolvers } from "./category.resolver";
 import { commentResolvers } from "./comment.resolvers";
+import { uploadResolvers } from "./upload.resolvers";
+import { newsletterResolvers } from "./newsletter.resolver";
+import { postInteractionResolvers } from "./post-interaction.resolver";
 
 // DateTime scalar resolver
 const dateTimeScalar = new GraphQLScalarType({
@@ -47,4 +50,7 @@ export const resolvers = [
   postResolvers,
   categoryResolvers,
   commentResolvers,
+  uploadResolvers,
+  newsletterResolvers,
+  postInteractionResolvers,
 ];

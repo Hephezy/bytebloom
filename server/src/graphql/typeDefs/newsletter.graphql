@@ -1,0 +1,9 @@
+type NewsletterSubscriber {
+  id: ID!
+  email: String!
+  subscribedAt: DateTime!
+}
+
+extend type Mutation {
+  subscribeToNewsletter(email: String!): NewsletterSubscriber!
+}

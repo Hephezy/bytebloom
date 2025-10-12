@@ -22,6 +22,24 @@ const commentTypeDefs = readFileSync(join(__dirname, "./comment.graphql"), {
   encoding: "utf-8",
 });
 
+const uploadTypeDefs = readFileSync(join(__dirname, "./upload.graphql"), {
+  encoding: "utf-8",
+});
+
+const newsletterTypeDefs = readFileSync(
+  join(__dirname, "./newsletter.graphql"),
+  {
+    encoding: "utf-8",
+  }
+);
+
+const postInteractionTypeDefs = readFileSync(
+  join(__dirname, "./post-interaction.graphql"),
+  {
+    encoding: "utf-8",
+  }
+);
+
 const scalarsTypeDefs = readFileSync(join(__dirname, "./scalars.graphql"), {
   encoding: "utf-8",
 });
@@ -34,4 +52,7 @@ export const typeDefs = [
   categoryTypeDefs,
   imageTypeDefs,
   commentTypeDefs,
+  uploadTypeDefs,
+  newsletterTypeDefs,
+  postInteractionTypeDefs,
 ];

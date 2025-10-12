@@ -296,6 +296,38 @@ export const GET_HOMEPAGE_DATA_QUERY = gql`
   }
 `;
 
+export const GET_USER_BY_ID_QUERY = gql`
+  query GetUserById($id: Int!) {
+    getUserById(id: $id) {
+      id
+      email
+      name
+      bio
+      avatar
+      followers
+      following
+      postsCount
+    }
+  }
+`;
+
+export const GET_USER_STATS_QUERY = gql`
+  query GetUserStats($id: Int!) {
+    getUserStats(id: $id) {
+      id
+      postsCount
+      followersCount
+      followingCount
+    }
+  }
+`;
+
+export const IS_POST_LIKED_QUERY = gql`
+  query IsPostLiked($postId: Int!) {
+    isPostLiked(postId: $postId)
+  }
+`;
+
 // ============================================
 // HELLO QUERY (for testing connection)
 // ============================================

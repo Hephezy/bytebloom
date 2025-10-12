@@ -15,6 +15,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import QuillEditor from "@/components/shared/QuillEditor";
+import ImageUpload from "@/components/shared/ImageUpload";
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -104,14 +105,6 @@ export default function CreatePostPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("=== POST CREATION DEBUG ===");
-    console.log("Title:", title);
-    console.log("Content:", content);
-    console.log("Content length:", content.length);
-    console.log("Content is empty:", content.trim() === "");
-    console.log("Categories:", selectedCategories);
-    console.log("=========================");
-
     if (!title.trim()) {
       alert("Please enter a title");
       return;
@@ -197,7 +190,7 @@ export default function CreatePostPage() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label
                   htmlFor="coverImage"
                   className="block text-sm font-medium text-foreground mb-2"
@@ -224,7 +217,13 @@ export default function CreatePostPage() {
                     />
                   </div>
                 )}
-              </div>
+              </div> */}
+
+              <ImageUpload
+                label="Cover Image"
+                onUploadComplete={(url) => setCoverImage(url)}
+                currentImage={coverImage}
+              />
 
               <div>
                 <label
