@@ -6,6 +6,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  bio?: string;
 }
 
 export interface AuthPayload {
@@ -20,6 +21,7 @@ export interface UpdateUserMutationData {
 export interface UpdateUserMutationVariables {
   id: number;
   name?: string;
+  bio?: string;
 }
 
 // ============================================
@@ -66,6 +68,8 @@ export interface Post {
   categories: Category[];
   images: Image[];
   comments: Comment[];
+  likes: number;
+  shares: number;
 }
 
 export interface CreatePostInput {

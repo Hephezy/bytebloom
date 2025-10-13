@@ -25,8 +25,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(session?.user?.name || "");
+  const [bio, setBio] = useState("");
 
-  // Move all hooks BEFORE any conditional returns
   const userId = session?.user?.id ? parseInt(session.user.id as string) : null;
 
   const { data, loading, error, refetch } = useQuery<
@@ -56,7 +56,6 @@ export default function ProfilePage() {
   >(UPDATE_USER_MUTATION, {
     onCompleted: (data) => {
       alert("Profile updated successfully!");
-      // Update the session with new name
       updateSession({
         user: {
           ...session?.user,
@@ -70,7 +69,6 @@ export default function ProfilePage() {
     },
   });
 
-  // Now do conditional redirects AFTER all hooks
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -102,6 +100,7 @@ export default function ProfilePage() {
       variables: {
         id: userId,
         name: name.trim(),
+        bio: bio.trim() || undefined,
       },
     });
   };
@@ -119,21 +118,35 @@ export default function ProfilePage() {
                     {session?.user?.name?.charAt(0) || "U"}
                   </span>
                 </div>
-                <div>
+                <div className="flex-1">
                   {editMode ? (
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="text-2xl font-bold bg-background border border-input rounded px-2 py-1 text-foreground"
-                      placeholder="Enter your name"
-                    />
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="text-2xl font-bold bg-background border border-input rounded px-2 py-1 text-foreground w-full"
+                        placeholder="Enter your name"
+                      />
+                      <textarea
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="w-full px-2 py-1 bg-background border border-input rounded text-foreground text-sm"
+                        placeholder="Write a bio (optional)"
+                        rows={2}
+                      />
+                    </div>
                   ) : (
-                    <h1 className="text-3xl font-bold text-foreground">
-                      {session?.user?.name || "User"}
-                    </h1>
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground">
+                        {session?.user?.name || "User"}
+                      </h1>
+                      {bio && (
+                        <p className="text-muted-foreground mt-1">{bio}</p>
+                      )}
+                      <p className="text-muted-foreground">{session?.user?.email}</p>
+                    </div>
                   )}
-                  <p className="text-muted-foreground">{session?.user?.email}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -150,6 +163,7 @@ export default function ProfilePage() {
                       onClick={() => {
                         setEditMode(false);
                         setName(session?.user?.name || "");
+                        setBio("");
                       }}
                       className="px-4 py-2 bg-secondary text-secondary-foreground cursor-pointer rounded-md"
                     >
