@@ -5,6 +5,7 @@ import {
   validateEmail,
   validatePassword,
   sanitizeString,
+  checkRateLimit,
 } from "../../lib/validation";
 
 interface Register {
@@ -85,6 +86,15 @@ export const userResolvers = {
       { email, password, name }: Register,
       ctx: Context
     ) => {
+      if (
+        !checkRateLimit(`register:${email.toLowerCase()}`, 5, 60 * 60 * 1000)
+      ) {
+        // 5 attempts per hour
+        throw new Error(
+          "Too many registration attempts. Please try again later."
+        );
+      }
+
       // Validate email
       if (!validateEmail(email)) {
         throw new Error("Invalid email format");
@@ -129,6 +139,12 @@ export const userResolvers = {
     },
 
     login: async (_: unknown, { email, password }: Login, ctx: Context) => {
+      const loginKey = `login:${email.toLowerCase()}`;
+      if (!checkRateLimit(loginKey, 10, 15 * 60 * 1000)) {
+        // 10 attempts per 15 mins
+        throw new Error("Too many login attempts. Please try again later.");
+      }
+
       // Validate email format
       if (!validateEmail(email)) {
         throw new Error("Invalid email format");

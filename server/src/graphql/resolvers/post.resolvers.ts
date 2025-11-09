@@ -1,3 +1,4 @@
+import { deleteFromCloudinary } from "../../lib/cloudinary";
 import { Context } from "../context";
 
 interface ImageInput {
@@ -30,6 +31,22 @@ interface GetPostsArgs {
   categoryId?: number;
   published?: boolean;
 }
+
+/**
+ * Extracts the publicId from a Cloudinary URL.
+ * Assumes a URL structure like: .../upload/v.../folder/public_id.ext
+ */
+const getPublicIdFromUrl = (url: string): string | null => {
+  if (!url) return null;
+  try {
+    // Regex to find the part after /upload/ (and optional version) up to the extension
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.*?)\.[^.]+$/);
+    return match ? match[1] : null;
+  } catch (error) {
+    console.error("Error parsing publicId from URL:", error);
+    return null;
+  }
+};
 
 export const postResolvers = {
   Query: {
@@ -252,6 +269,7 @@ export const postResolvers = {
       // Check if post exists and belongs to user
       const existingPost = await ctx.prisma.post.findUnique({
         where: { id },
+        include: { images: true },
       });
 
       if (!existingPost) {
@@ -260,6 +278,22 @@ export const postResolvers = {
 
       if (existingPost.authorId !== ctx.userId) {
         throw new Error("You can only update your own posts");
+      }
+
+      if (
+        coverImage !== undefined && // A new image URL is being provided (or set to null)
+        existingPost.coverImage && // An old image exists
+        existingPost.coverImage !== coverImage // The old and new URLs are different
+      ) {
+        const publicId = getPublicIdFromUrl(existingPost.coverImage);
+        if (publicId) {
+          try {
+            await deleteFromCloudinary(publicId);
+            console.log(`[POST UPDATE] Deleted old cover image: ${publicId}`);
+          } catch (err) {
+            console.error(`Failed to delete old cover image ${publicId}:`, err);
+          }
+        }
       }
 
       // If categoryIds provided, validate them
@@ -284,6 +318,21 @@ export const postResolvers = {
 
       // If images are provided, delete old ones and create new ones
       if (images) {
+        for (const oldImage of existingPost.images) {
+          const publicId = getPublicIdFromUrl(oldImage.url);
+          if (publicId) {
+            try {
+              await deleteFromCloudinary(publicId);
+              console.log(`[POST UPDATE] Deleted old post image: ${publicId}`);
+            } catch (err) {
+              console.error(
+                `Failed to delete old post image ${publicId}:`,
+                err
+              );
+            }
+          }
+        }
+
         await ctx.prisma.image.deleteMany({
           where: { postId: id },
         });
@@ -340,6 +389,7 @@ export const postResolvers = {
       // Check if post exists and belongs to user
       const existingPost = await ctx.prisma.post.findUnique({
         where: { id },
+        include: { images: true },
       });
 
       if (!existingPost) {
@@ -348,6 +398,32 @@ export const postResolvers = {
 
       if (existingPost.authorId !== ctx.userId) {
         throw new Error("You can only delete your own posts");
+      }
+
+      // Delete cover image from Cloudinary
+      if (existingPost.coverImage) {
+        const publicId = getPublicIdFromUrl(existingPost.coverImage);
+        if (publicId) {
+          try {
+            await deleteFromCloudinary(publicId);
+            console.log(`[POST DELETE] Deleted cover image: ${publicId}`);
+          } catch (err) {
+            console.error(`Failed to delete cover image ${publicId}:`, err);
+          }
+        }
+      }
+
+      // Delete post images from Cloudinary
+      for (const image of existingPost.images) {
+        const publicId = getPublicIdFromUrl(image.url);
+        if (publicId) {
+          try {
+            await deleteFromCloudinary(publicId);
+            console.log(`[POST DELETE] Deleted post image: ${publicId}`);
+          } catch (err) {
+            console.error(`Failed to delete post image ${publicId}:`, err);
+          }
+        }
       }
 
       return await ctx.prisma.post.delete({

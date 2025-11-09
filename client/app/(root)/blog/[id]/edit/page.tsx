@@ -15,9 +15,11 @@ import {
   GetCategoriesQueryData,
 } from "@/lib/graphql";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import ImageUpload from "@/components/shared/ImageUpload";
+
+type CategoryOption = { id: string; name: string };
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -30,6 +32,9 @@ export default function EditPostPage() {
   const [coverImage, setCoverImage] = useState("");
   const [categoryId, setCategoryId] = useState<number>(1);
   const [published, setPublished] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<CategoryOption[]>([]);
+  const [categoryInput, setCategoryInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Redirect if not logged in
   if (status === "unauthenticated") {
@@ -53,6 +58,9 @@ export default function EditPostPage() {
       setCoverImage(post.coverImage || "");
       setCategoryId(parseInt(post.categories[0]?.id || '1'));
       setPublished(post.published);
+      setSelectedCategories(
+        post.categories.map((cat) => ({ id: cat.id, name: cat.name }))
+      );
     }
   }, [postData]);
 
@@ -74,11 +82,55 @@ export default function EditPostPage() {
     },
   });
 
+  // Filter suggestions
+  const filteredSuggestions = categoriesData?.getCategories.filter((cat) => {
+    const isAlreadySelected = selectedCategories.some((selected) => selected.id === cat.id);
+    const matchesInput = cat.name.toLowerCase().includes(categoryInput.toLowerCase());
+    return !isAlreadySelected && matchesInput && categoryInput.trim() !== "";
+  }) || [];
+
+  const handleAddCategory = (category: CategoryOption) => {
+    if (!selectedCategories.some((cat) => cat.id === category.id)) {
+      setSelectedCategories([...selectedCategories, category]);
+      setCategoryInput("");
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleRemoveCategory = (categoryId: string) => {
+    setSelectedCategories(selectedCategories.filter((cat) => cat.id !== categoryId));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (filteredSuggestions.length > 0) {
+        handleAddCategory(filteredSuggestions[0]);
+      }
+    } else if (e.key === "Backspace" && categoryInput === "" && selectedCategories.length > 0) {
+      handleRemoveCategory(selectedCategories[selectedCategories.length - 1].id);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
       alert("Please enter a title");
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
+      alert("Please select at least one category");
+      return;
+    }
+
+    const categoryIds = selectedCategories
+      .map((cat) => Number(cat.id))
+      .filter((id) => !isNaN(id));
+
+    if (categoryIds.length === 0 || categoryIds.length !== selectedCategories.length) {
+      alert("Invalid category IDs. Please try again.");
       return;
     }
 
@@ -108,6 +160,14 @@ export default function EditPostPage() {
         <div className="text-destructive">Post not found</div>
       </div>
     );
+  }
+
+  // --- Check if the logged-in user is the author ---
+  const isAuthor = postData?.getPostById?.authorId === parseInt(session?.user?.id as string);
+  if (!isAuthor && status === "authenticated" && !postLoading) {
+    router.push("/blog");
+    alert("You are not authorized to edit this post.");
+    return null;
   }
 
   return (
@@ -194,21 +254,59 @@ export default function EditPostPage() {
                   htmlFor="category"
                   className="block text-sm font-medium text-foreground mb-2"
                 >
-                  Category *
+                  Categories *
                 </label>
-                <select
-                  id="category"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
-                  required
-                >
-                  {categoriesData?.getCategories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <div className="w-full min-h-[42px] px-2 py-1 bg-background border border-input rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-ring flex flex-wrap gap-2 items-center">
+                    {selectedCategories.map((category) => (
+                      <span
+                        key={category.id}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                      >
+                        {category.name}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCategory(category.id)}
+                          className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      id="category"
+                      type="text"
+                      value={categoryInput}
+                      onChange={(e) => {
+                        setCategoryInput(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onKeyDown={handleKeyDown}
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      className="flex-1 min-w-[120px] outline-none bg-transparent text-foreground placeholder:text-muted-foreground"
+                      placeholder={selectedCategories.length === 0 ? "Type to search categories..." : ""}
+                      disabled={!categoriesData?.getCategories || categoriesData.getCategories.length === 0}
+                    />
+                  </div>
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-background border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      {filteredSuggestions.map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => handleAddCategory(category)}
+                          className="w-full px-4 py-2 text-left hover:bg-accent text-foreground transition-colors"
+                        >
+                          {category.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Press Enter to add categories.
+                </p>
               </div>
 
               {/* Content */}

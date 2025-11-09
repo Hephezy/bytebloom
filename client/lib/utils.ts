@@ -59,13 +59,6 @@ export function formatDate(
       // Unix timestamps are 10 digits (seconds)
       const timestampStr = dateString.toString();
 
-      // Debug logging
-      console.log("formatDate DEBUG:", {
-        input: dateString,
-        length: timestampStr.length,
-        type: typeof dateString,
-      });
-
       if (timestampStr.length === 10) {
         // Seconds - convert to milliseconds
         date = new Date(dateString * 1000);
@@ -81,17 +74,8 @@ export function formatDate(
       }
     } else {
       // Handle string date (ISO format, etc.)
-      console.log("formatDate - String input:", dateString);
       date = new Date(dateString);
     }
-
-    // Additional debug for the created date
-    console.log("Created date:", {
-      dateObject: date,
-      timestamp: date.getTime(),
-      isValid: !isNaN(date.getTime()),
-      formatted: date.toString(),
-    });
 
     // Check if date is valid
     if (isNaN(date.getTime())) {

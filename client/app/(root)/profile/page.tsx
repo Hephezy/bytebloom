@@ -3,19 +3,22 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Plus, Eye } from "lucide-react";
 import {
   GET_POSTS_BY_USER_QUERY,
   DELETE_POST_MUTATION,
   UPDATE_USER_MUTATION,
+  GET_USER_BY_ID_QUERY,
   GetPostsByUserQueryData,
   GetPostsByUserQueryVariables,
   DeletePostMutationData,
   DeletePostMutationVariables,
   UpdateUserMutationData,
   UpdateUserMutationVariables,
+  GetUserByIdQueryData,
+  GetUserByIdQueryVariables
 } from "@/lib/graphql";
 import { formatDate } from "@/lib/utils";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +39,22 @@ export default function ProfilePage() {
     variables: { userId: userId || 0 },
     skip: !userId,
   });
+
+  const { data: userData, loading: userLoading } = useQuery<
+    GetUserByIdQueryData,
+    GetUserByIdQueryVariables
+  >(GET_USER_BY_ID_QUERY, {
+    variables: { id: userId || 0 },
+    skip: !userId,
+  });
+
+  // Populate state when user data loads
+  useEffect(() => {
+    if (userData?.getUserById) {
+      setName(userData.getUserById.name || "");
+      setBio(userData.getUserById.bio || "");
+    }
+  }, [userData]);
 
   const [deletePost] = useMutation<
     DeletePostMutationData,
@@ -69,7 +88,7 @@ export default function ProfilePage() {
     },
   });
 
-  if (status === "loading") {
+  if (status === "loading" || (userLoading && !userData)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -139,7 +158,7 @@ export default function ProfilePage() {
                   ) : (
                     <div>
                       <h1 className="text-3xl font-bold text-foreground">
-                        {session?.user?.name || "User"}
+                        {name || "User"}
                       </h1>
                       {bio && (
                         <p className="text-muted-foreground mt-1">{bio}</p>
@@ -162,8 +181,8 @@ export default function ProfilePage() {
                     <button
                       onClick={() => {
                         setEditMode(false);
-                        setName(session?.user?.name || "");
-                        setBio("");
+                        setName(userData?.getUserById?.name || session?.user?.name || "");
+                        setBio(userData?.getUserById?.bio || "");
                       }}
                       className="px-4 py-2 bg-secondary text-secondary-foreground cursor-pointer rounded-md"
                     >

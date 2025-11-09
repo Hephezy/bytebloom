@@ -36,13 +36,6 @@ export default function CommentItem({
   const commentAuthorId = parseInt(comment.authorId);
   const isCommentAuthor = userId !== null && userId === commentAuthorId;
 
-  console.log("CommentItem Debug:", {
-    userId,
-    commentAuthorId,
-    isCommentAuthor,
-    rawCommentAuthorId: comment.authorId,
-  });
-
   const [likeComment] = useMutation(LIKE_COMMENT_MUTATION, {
     onCompleted: () => {
       setIsLiked(true);
@@ -75,7 +68,6 @@ export default function CommentItem({
 
   const [updateComment] = useMutation(UPDATE_COMMENT_MUTATION, {
     onCompleted: (data) => {
-      console.log("Comment updated:", data);
       alert("Comment updated successfully!");
       setIsEditing(false);
       onCommentUpdated?.();
@@ -110,11 +102,6 @@ export default function CommentItem({
       alert("Comment cannot be empty");
       return;
     }
-
-    console.log("Updating comment with:", {
-      id: parseInt(comment.id),
-      content: editedContent.trim(),
-    });
 
     await updateComment({
       variables: {
