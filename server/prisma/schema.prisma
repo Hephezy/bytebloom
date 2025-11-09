@@ -12,6 +12,8 @@ model User {
   email     String    @unique
   password  String
   name      String?
+  bio       String?
+  avatar       String?
   posts     Post[]
   comments  Comment[]
   followers User[]    @relation("UserFollows")

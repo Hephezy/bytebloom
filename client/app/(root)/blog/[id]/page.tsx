@@ -101,7 +101,7 @@ export default function SinglePostPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="md:col-span-3">
+          <div className="lg:col-span-3">
             {/* Back Button */}
             <Link
               href="/blog"
@@ -265,7 +265,7 @@ export default function SinglePostPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1">
             <UserProfileCard userId={post.authorId} />
           </div>
         </div>

@@ -32,7 +32,16 @@ export default function CommentItem({
   );
   const [likeCount, setLikeCount] = useState(comment.likes || 0);
 
-  console.log("CommentItem userId:", userId, "commentAuthorId:", comment.authorId);
+  // Fix: Convert both IDs to numbers for proper comparison
+  const commentAuthorId = parseInt(comment.authorId);
+  const isCommentAuthor = userId !== null && userId === commentAuthorId;
+
+  console.log("CommentItem Debug:", {
+    userId,
+    commentAuthorId,
+    isCommentAuthor,
+    rawCommentAuthorId: comment.authorId,
+  });
 
   const [likeComment] = useMutation(LIKE_COMMENT_MUTATION, {
     onCompleted: () => {
@@ -115,10 +124,6 @@ export default function CommentItem({
     });
   };
 
-  // Debug: Check if user is comment author
-  const isCommentAuthor = userId === parseInt(comment.authorId);
-  console.log("Is comment author?", isCommentAuthor, userId, comment.authorId);
-
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -126,12 +131,12 @@ export default function CommentItem({
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
               <span className="text-sm font-bold text-primary">
-                {comment.author.name?.charAt(0) || "A"}
+                {comment.author?.name?.charAt(0) || "A"}
               </span>
             </div>
             <div>
               <p className="font-semibold text-foreground">
-                {comment.author.name || "Anonymous"}
+                {comment.author?.name || "Anonymous"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatDate(comment.createdAt)}

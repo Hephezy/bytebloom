@@ -11,7 +11,7 @@ export default function HomePage() {
       <section className="w-full bg-gradient-to-b from-primary/5 to-background py-20 px-4 mb-20">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-            Welcome to The Blog
+            Welcome to Byte Bloom
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             A modern platform for sharing your thoughts, stories, and insights with the world.

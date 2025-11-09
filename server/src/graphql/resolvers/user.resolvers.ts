@@ -1,11 +1,16 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Context } from "../context";
+import {
+  validateEmail,
+  validatePassword,
+  sanitizeString,
+} from "../../lib/validation";
 
 interface Register {
   email: string;
   password: string;
-  name: string;
+  name?: string;
 }
 
 interface Login {
@@ -16,6 +21,13 @@ interface Login {
 interface UpdateUserArgs {
   id: number;
   name?: string;
+  bio?: string;
+}
+
+// Ensure JWT_SECRET is set
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
 export const userResolvers = {
@@ -73,49 +85,81 @@ export const userResolvers = {
       { email, password, name }: Register,
       ctx: Context
     ) => {
+      // Validate email
+      if (!validateEmail(email)) {
+        throw new Error("Invalid email format");
+      }
+
+      // Validate password
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        throw new Error(passwordError);
+      }
+
+      // Sanitize name if provided
+      const sanitizedName = name ? sanitizeString(name, 100) : undefined;
+
+      // Check if user already exists
+      const existingUser = await ctx.prisma.user.findUnique({
+        where: { email: email.toLowerCase().trim() },
+      });
+
+      if (existingUser) {
+        throw new Error("User with this email already exists");
+      }
+
+      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // Create user
       const user = await ctx.prisma.user.create({
         data: {
-          email,
+          email: email.toLowerCase().trim(),
           password: hashedPassword,
-          name,
+          name: sanitizedName,
         },
       });
 
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET || "SUPER_SECRET"
-      );
+      // Generate token
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
 
       return { token, user };
     },
 
     login: async (_: unknown, { email, password }: Login, ctx: Context) => {
+      // Validate email format
+      if (!validateEmail(email)) {
+        throw new Error("Invalid email format");
+      }
+
+      // Find user
       const user = await ctx.prisma.user.findUnique({
-        where: { email },
+        where: { email: email.toLowerCase().trim() },
       });
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error("Invalid email or password");
       }
 
+      // Verify password
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
-        throw new Error("Invalid password");
+        throw new Error("Invalid email or password");
       }
 
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET || "SUPER_SECRET"
-      );
+      // Generate token
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
 
       return { token, user };
     },
 
     updateUser: async (
       _: unknown,
-      { id, name }: UpdateUserArgs,
+      { id, name, bio }: UpdateUserArgs,
       ctx: Context
     ) => {
       // PROTECTED: User can only update their own profile
@@ -136,12 +180,25 @@ export const userResolvers = {
         throw new Error("User not found");
       }
 
+      // Sanitize inputs
+      const updateData: any = {};
+
+      if (name !== undefined) {
+        const sanitizedName = sanitizeString(name, 100);
+        if (!sanitizedName) {
+          throw new Error("Name cannot be empty");
+        }
+        updateData.name = sanitizedName;
+      }
+
+      if (bio !== undefined) {
+        updateData.bio = sanitizeString(bio, 500);
+      }
+
       // Update user
       return await ctx.prisma.user.update({
         where: { id },
-        data: {
-          ...(name && { name }),
-        },
+        data: updateData,
       });
     },
 
@@ -166,6 +223,20 @@ export const userResolvers = {
         throw new Error("User not found");
       }
 
+      // Check if already following
+      const currentUser = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        include: { following: true },
+      });
+
+      const alreadyFollowing = currentUser?.following.some(
+        (u) => u.id === userId
+      );
+
+      if (alreadyFollowing) {
+        throw new Error("You are already following this user");
+      }
+
       await ctx.prisma.user.update({
         where: { id: ctx.userId },
         data: {
@@ -188,6 +259,18 @@ export const userResolvers = {
     ) => {
       if (!ctx.userId) {
         throw new Error("You must be logged in to unfollow users");
+      }
+
+      // Check if currently following
+      const currentUser = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        include: { following: true },
+      });
+
+      const isFollowing = currentUser?.following.some((u) => u.id === userId);
+
+      if (!isFollowing) {
+        throw new Error("You are not following this user");
       }
 
       await ctx.prisma.user.update({

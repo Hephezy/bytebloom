@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -23,11 +23,22 @@ export default function UserProfileCard({ userId }: UserProfileCardProps) {
   const currentUserId = session?.user?.id ? parseInt(session.user.id as string) : null;
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const { data: userData, loading } = useQuery<
+  // Fix: Convert both IDs to numbers for proper comparison
+  const isOwnProfile = currentUserId !== null && currentUserId === userId;
+
+  console.log("UserProfileCard Debug:", {
+    currentUserId,
+    userId,
+    isOwnProfile,
+    sessionUserId: session?.user?.id,
+  });
+
+  const { data: userData, loading, error } = useQuery<
     GetUserByIdQueryData,
     GetUserByIdQueryVariables
   >(GET_USER_BY_ID_QUERY, {
     variables: { id: userId },
+    skip: !userId,
   });
 
   const [followUser] = useMutation(FOLLOW_USER_MUTATION, {
@@ -62,15 +73,30 @@ export default function UserProfileCard({ userId }: UserProfileCardProps) {
   };
 
   if (loading) {
-    return <div className="animate-pulse">Loading...</div>;
+    return (
+      <Card className="sticky top-4">
+        <CardContent className="py-8">
+          <div className="animate-pulse text-center text-muted-foreground">
+            Loading...
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
-  if (!userData?.getUserById) {
-    return null;
+  if (error || !userData?.getUserById) {
+    return (
+      <Card className="sticky top-4">
+        <CardContent className="py-8">
+          <div className="text-center text-destructive">
+            Failed to load profile
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const user = userData.getUserById;
-  const isOwnProfile = currentUserId === userId;
 
   return (
     <Card className="sticky top-4">
@@ -90,26 +116,26 @@ export default function UserProfileCard({ userId }: UserProfileCardProps) {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-2xl font-bold text-foreground">
-              {user.postsCount}
+              {user.postsCount || 0}
             </p>
             <p className="text-xs text-muted-foreground">Posts</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground">
-              {user.followers}
+              {user.followers || 0}
             </p>
             <p className="text-xs text-muted-foreground">Followers</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground">
-              {user.following}
+              {user.following || 0}
             </p>
             <p className="text-xs text-muted-foreground">Following</p>
           </div>
         </div>
 
         {/* Actions */}
-        {!isOwnProfile && (
+        {!isOwnProfile && session && (
           <button
             onClick={handleFollow}
             className={`w-full py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${isFollowing
@@ -125,9 +151,18 @@ export default function UserProfileCard({ userId }: UserProfileCardProps) {
         {isOwnProfile && (
           <Link
             href="/profile"
-            className="w-full py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors bg-primary text-primary-foreground hover:opacity-90"
+            className="block w-full py-2 rounded-lg font-medium text-center transition-colors bg-primary text-primary-foreground hover:opacity-90"
           >
             Edit Profile
+          </Link>
+        )}
+
+        {!session && !isOwnProfile && (
+          <Link
+            href="/login"
+            className="block w-full py-2 rounded-lg font-medium text-center transition-colors bg-primary text-primary-foreground hover:opacity-90"
+          >
+            Login to Follow
           </Link>
         )}
       </CardContent>

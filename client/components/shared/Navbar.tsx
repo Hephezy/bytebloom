@@ -20,7 +20,7 @@ const Navbar = () => {
   return (
     <nav className='flex w-full justify-between items-center py-4'>
       <div>
-        <h2>The Blog</h2>
+        <h2>Byte Bloom</h2>
       </div>
       <div className=''>
         <div className='hidden lg:flex gap-12 md:gap-8 items-center'>

@@ -8,6 +8,8 @@ import { resolvers } from "./graphql/resolvers";
 import { createContext } from "./graphql/context";
 
 dotenv.config();
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
+console.log("JWT_SECRET:", process.env.DATABASE_UR);
 
 async function startServer() {
   const app = express();

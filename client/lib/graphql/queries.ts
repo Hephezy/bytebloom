@@ -92,6 +92,7 @@ export const GET_POST_BY_ID_QUERY = gql`
       published
       createdAt
       updatedAt
+      authorId
       author {
         id
         name
@@ -115,11 +116,16 @@ export const GET_POST_BY_ID_QUERY = gql`
         content
         createdAt
         updatedAt
+        authorId
         author {
           id
           name
         }
+        likes
+        likedBy
       }
+      likes
+      shares
     }
   }
 `;

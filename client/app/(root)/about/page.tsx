@@ -8,7 +8,7 @@ export default function AboutPage() {
       <section className="bg-gradient-to-b from-primary/5 to-background py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-bold text-foreground mb-4">
-            About The Blog
+            About Byte Bloom
           </h1>
           <p className="text-xl text-muted-foreground">
             A modern blogging platform built with cutting-edge technologies
@@ -24,7 +24,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="text-muted-foreground space-y-4">
             <p>
-              The Blog is a modern blogging platform designed to make content creation
+              Byte Bloom is a modern blogging platform designed to make content creation
               and sharing seamless and enjoyable. We believe in the power of stories
               and the importance of providing a platform where voices can be heard.
             </p>
