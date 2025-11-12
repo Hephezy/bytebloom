@@ -21,24 +21,27 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`relative w-20 h-10 rounded-full transition-colors duration-300 border-2 ${isDark ? 'bg-white border-gray-300' : 'bg-black border-gray-700'
+      className={`relative w-20 h-10 rounded-full transition-colors duration-300 border-2 flex items-center ${isDark ? 'bg-white border-gray-300' : 'bg-black border-gray-700'
         }`}
+      aria-label="Toggle theme"
     >
       {/* Sun icon - left side */}
       <Sun
-        className={`absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${!isDark ? 'text-white' : 'text-black'
+        className={`absolute left-2 w-5 h-5 transition-colors duration-300 ${!isDark ? 'text-white' : 'text-black'
           }`}
       />
 
       {/* Moon icon - right side */}
       <Moon
-        className={`absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${isDark ? 'text-black' : 'text-white'
+        className={`absolute right-2 w-5 h-5 transition-colors duration-300 ${isDark ? 'text-black' : 'text-white'
           }`}
       />
 
       {/* Circle thumb */}
       <div
-        className={`absolute top-1 w-8 h-8 rounded-full transition-all duration-300 ${isDark ? 'bg-black translate-x-10' : 'bg-white translate-x-1'
+        className={`absolute w-7 h-7 rounded-full transition-all duration-300 ${isDark
+          ? 'bg-black left-[calc(100%-2rem)]'
+          : 'bg-white left-1'
           }`}
       />
     </button>
