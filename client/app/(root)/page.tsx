@@ -33,7 +33,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:bg-secondary/80 transition-colors"
+              className="px-8 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:bg-secondary/80 transition-colors"
             >
               Join Now
             </Link>

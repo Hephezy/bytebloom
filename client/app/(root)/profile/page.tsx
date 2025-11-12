@@ -130,21 +130,22 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-bold text-primary">
+            <div className="flex flex-col gap-6">
+              {/* Top Section: Avatar and Info */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl font-bold text-primary">
                     {session?.user?.name?.charAt(0) || "U"}
                   </span>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 w-full min-w-0">
                   {editMode ? (
                     <div className="space-y-3">
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="text-2xl font-bold bg-background border border-input rounded px-2 py-1 text-foreground w-full"
+                        className="text-xl sm:text-2xl font-bold bg-background border border-input rounded px-2 py-1 text-foreground w-full"
                         placeholder="Enter your name"
                       />
                       <textarea
@@ -157,24 +158,26 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <div>
-                      <h1 className="text-3xl font-bold text-foreground">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-words">
                         {name || "User"}
                       </h1>
                       {bio && (
-                        <p className="text-muted-foreground mt-1">{bio}</p>
+                        <p className="text-muted-foreground mt-1 text-sm sm:text-base break-words">{bio}</p>
                       )}
-                      <p className="text-muted-foreground">{session?.user?.email}</p>
+                      <p className="text-muted-foreground text-sm sm:text-lg font-normal break-all">{session?.user?.email}</p>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+
+              {/* Bottom Section: Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:self-end">
                 {editMode ? (
                   <>
                     <button
                       onClick={handleUpdateProfile}
                       disabled={updateLoading}
-                      className="px-4 py-2 bg-primary text-primary-foreground cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-primary text-primary-foreground cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                     >
                       {updateLoading ? "Saving..." : "Save"}
                     </button>
@@ -184,7 +187,7 @@ export default function ProfilePage() {
                         setName(userData?.getUserById?.name || session?.user?.name || "");
                         setBio(userData?.getUserById?.bio || "");
                       }}
-                      className="px-4 py-2 bg-secondary text-secondary-foreground cursor-pointer rounded-md"
+                      className="px-4 py-2 bg-secondary text-secondary-foreground cursor-pointer rounded-md w-full sm:w-auto"
                     >
                       Cancel
                     </button>
@@ -192,7 +195,7 @@ export default function ProfilePage() {
                 ) : (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md flex items-center cursor-pointer gap-2"
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md flex items-center justify-center cursor-pointer gap-2 w-full sm:w-auto"
                   >
                     <Pencil className="w-4 h-4" />
                     Edit Profile
