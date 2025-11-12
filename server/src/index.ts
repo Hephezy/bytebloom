@@ -1,15 +1,14 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
 import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express5";
 import cors from "cors";
-import dotenv from "dotenv";
 import { typeDefs } from "./graphql/typeDefs";
 import { resolvers } from "./graphql/resolvers";
 import { createContext } from "./graphql/context";
-
-dotenv.config();
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-console.log("JWT_SECRET:", process.env.DATABASE_UR);
 
 async function startServer() {
   const app = express();

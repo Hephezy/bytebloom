@@ -14,8 +14,13 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
-import QuillEditor from "@/components/shared/QuillEditor";
+import dynamic from 'next/dynamic';
 import ImageUpload from "@/components/shared/ImageUpload";
+
+const QuillEditor = dynamic(() => import('@/components/shared/QuillEditor'), {
+  ssr: false,
+  loading: () => <p>Loading editor...</p> // You can add a loading skeleton here
+});
 
 export default function CreatePostPage() {
   const router = useRouter();
