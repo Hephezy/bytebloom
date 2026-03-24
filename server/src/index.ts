@@ -23,13 +23,17 @@ async function startServer() {
   app.use(
     "/graphql",
     cors<cors.CorsRequest>({
-      origin: ["https://byteblooms.vercel.app", "http://localhost:3000"],
+      origin: [
+        "https://byteblooms.vercel.app",
+        "http://localhost:3000",
+        "https://bytebloom.marpel.dev",
+      ],
       credentials: true,
     }),
     express.json({ limit: "10mb" }),
     expressMiddleware(server, {
       context: async ({ req }) => createContext({ req }), // Pass request to context
-    })
+    }),
   );
 
   const PORT = Number(process.env.PORT) || 4000;
